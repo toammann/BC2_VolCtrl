@@ -512,7 +512,9 @@ uint16_t uart0_getln(char* uart0_line_buf)
 			//Ignore backspace and "DEL" (=127)
 			if ( rec_c == '\b' || rec_c == 127 ){
 				//delete the most recent character
-				uart0_line_buf_len--;
+				//Prevent buf len from overflow
+				if (uart0_line_buf_len > 1) uart0_line_buf_len--;
+				//uart0_line_buf_len--;
 			}
 			else{
 				//-> store to buffer

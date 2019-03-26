@@ -71,7 +71,6 @@ uint8_t cmd_parser(char* cmd){
 		uart0_puts(cmd);
 		uart0_puts("\r\n");
 	}
-		
 	
 	command_ptr detc_cmd = NULL;
 	char delim[] = " ,";		// " " and ","
@@ -136,6 +135,7 @@ uint8_t cmd_parser(char* cmd){
 			
 			if (argv[argc] == NULL){
 				//Memory allocation failed
+				uart0_puts("Memory allocation failed!\r\n");
 				err = 1;
 				break;
 			}
@@ -145,7 +145,8 @@ uint8_t cmd_parser(char* cmd){
 			
 			//increase argument counter			
 			argc++;
-		}				
+		}
+		//Fetch the next token to process		
 		token = strtok(NULL, delim);
 	}
 	
@@ -156,9 +157,8 @@ uint8_t cmd_parser(char* cmd){
 		err=1;
 	}
 	
-	
 	if (!err){
-		//all fine call fuction and pass arguments
+		//If all went fine call the command function and pass the arguments
 		detc_cmd->cmd_fun_ptr(argc, argv);
 	}
 
