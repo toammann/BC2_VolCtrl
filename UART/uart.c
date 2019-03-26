@@ -466,6 +466,7 @@ uint16_t uart0_errchk(uint16_t rec_val){
 Function: uart0_getln()
 Purpose:  reads a line from UART buffer (delimiter); '\b' and DEL=127 are 
 		  ignored and the most recent chr is deleted
+		  The implementation is non blocking
 Input:    pointer to a line buffer
 Returns:  0x00 no bytes available
 		  0x01 one line was read successfully

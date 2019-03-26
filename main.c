@@ -74,7 +74,7 @@ uint8_t cmd_parser(char* cmd){
 		
 	
 	command_ptr detc_cmd = NULL;
-	char delim[] = " ,"; // " " and ","
+	char delim[] = " ,";		// " " and ","
 	
 	uint8_t argc;				//Recognized argument count
 	uint8_t err;				//Error-Flag
@@ -126,7 +126,7 @@ uint8_t cmd_parser(char* cmd){
 			//Check argument string length
 			tmp_strlen = strlen(token); // strlen is not including '\0'
 			if ( tmp_strlen + 1 >= MAX_ARG_LEN ){
-				uart0_puts("Max arg cnt exceeded!\r\n");
+				uart0_puts("Max arg string length exceeded!\r\n");
 				err = 1;
 				break;
 			}
@@ -150,7 +150,8 @@ uint8_t cmd_parser(char* cmd){
 	}
 	
 	//all arguments parsed, check if the correct number of arguments was found
-	if (argc != detc_cmd->arg_cnt){
+	//do not print a error message if the err flag is already set
+	if ( (argc != detc_cmd->arg_cnt) && (err == 0) ){
 		uart0_puts("Incorrect number of Arguments!\r\n");
 		err=1;
 	}
