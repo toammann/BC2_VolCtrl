@@ -167,7 +167,7 @@ were adapted from the Arduino HardwareSerial.h library by Tim Sharpe on
 ** Line delimiter and line buffer size of uart0_getln()
 */
 #define  LINE_DELIMITER '\r'
-#define  LINE_BUF_SIZE 128 //2*80 putty window length
+#define  LINE_BUF_SIZE 80 //80 putty window length
 extern char uart0_line_buf[];
 
 /* Macros, to allow use of legacy names */

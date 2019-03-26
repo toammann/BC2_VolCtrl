@@ -464,10 +464,11 @@ uint16_t uart0_errchk(uint16_t rec_val){
 
 /*************************************************************************
 Function: uart0_getln()
-Purpose:  reads a line from ART buffer (delimiter 
+Purpose:  reads a line from UART buffer (delimiter); '\b' and DEL=127 are 
+		  ignored and the most recent chr is deleted
 Input:    pointer to a line buffer
-Returns:  0x00 no error occurred
-		  0x01 the line contains no characters (line buffer contains only delimiter)
+Returns:  0x00 no bytes available
+		  0x01 one line was read successfully
 		  0x02 UART transmit Error occurred
 **************************************************************************/
 uint16_t uart0_getln(char* uart0_line_buf)
@@ -505,22 +506,28 @@ uint16_t uart0_getln(char* uart0_line_buf)
 			return 0x01;
 		}
 		else {
-			//EOL not reached -> store to buffer
-			if(uart0_line_buf_len < LINE_BUF_SIZE){
-				uart0_line_buf[uart0_line_buf_len++] = rec_c;
-				uart0_line_buf[uart0_line_buf_len] = 0; // append the null terminator
+			//EOL not reached 
+			
+			//Ignore backspace and "DEL" (=127)
+			if ( rec_c == '\b' || rec_c == 127 ){
+				//delete the most recent character
+				uart0_line_buf_len--;
 			}
 			else{
-				//buffer full -> print error message
-				uart0_puts("Line length exceeds buffer!");
+				//-> store to buffer
+				if(uart0_line_buf_len < LINE_BUF_SIZE){
+					uart0_line_buf[uart0_line_buf_len++] = rec_c;
+					uart0_line_buf[uart0_line_buf_len] = 0; // append the null terminator
+				}
+				else{
+					//buffer full -> print error message
+					uart0_puts("Line length exceeds buffer!");
+				}
 			}
 		}
 	}
 	return 0x00;
 }
-
-
-
 #endif /* defined(USART0_ENABLED) */
 
 
