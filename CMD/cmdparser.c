@@ -137,9 +137,9 @@ Purpose:  reads a line from UART buffer (delimiter); '\b' and DEL=127 delete the
 		  recent chr; '\n' characters are ignored
 		  The implementation is non blocking
 Input:    pointer to a line buffer
-Returns:  0x00 no bytes available
-		  0x01 one line was read successfully
-		  0x02 UART transmit Error occurred
+Returns:  0x01 no bytes available
+		  0x00 one line was read successfully
+		  0xXX02 UART transmit Error occurred (Upper 16 Bytes are the UART error code)
 **************************************************************************/
 uint16_t uart0_getln(char* uart0_line_buf)
 {
@@ -155,7 +155,7 @@ uint16_t uart0_getln(char* uart0_line_buf)
 		
 		//Check for receive errors
 		if ( uart0_errchk(rec_val) ){
-			return uart0_errchk(rec_val);
+			return ( uart0_errchk(rec_val) | GET_LN_REC_ERR);
 		}
 
 		if ( rec_c == LINE_DELIMITER ){
@@ -169,7 +169,7 @@ uint16_t uart0_getln(char* uart0_line_buf)
 				//(empty string)
 				uart0_line_buf[uart0_line_buf_len] = 0;
 			}
-			return 0x01;
+			return GET_LN_RECEIVED;
 		}
 		else {
 			//EOL not reached 
@@ -198,7 +198,7 @@ uint16_t uart0_getln(char* uart0_line_buf)
 			}
 		}
 	}
-	return 0x00;
+	return GET_LN_NO_BYTES;
 }
 
 

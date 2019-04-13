@@ -18,10 +18,7 @@ uint16_t tmp;
 					
 int main(void)
 {
-
-	
 	sei();
-
 		
 	uart0_init(UART_BAUD_SELECT(9600, F_CPU));
 	uart1_init(UART_BAUD_SELECT(9600, F_CPU));
@@ -44,7 +41,7 @@ int main(void)
 	
 	while (1)
 	{
-		if (uart0_getln(uart0_line_buf)){
+		if (uart0_getln(uart0_line_buf) == GET_LN_RECEIVED){
 			cmd_parser(uart0_line_buf);
 		}
 		

@@ -15,8 +15,14 @@
 /*
 ** Line delimiter and line buffer size of uart0_getln()
 */
-#define  LINE_DELIMITER '\r'
-#define  LINE_BUF_SIZE 80 //80 putty window length
+#define  GET_LN_NO_BYTES	1
+#define  GET_LN_REC_ERR		2
+#define  GET_LN_RECEIVED	0
+
+#define  LINE_DELIMITER		'\r'
+#define  LINE_BUF_SIZE		80 //80 putty window length
+
+
 extern char uart0_line_buf[];
 
 /**
