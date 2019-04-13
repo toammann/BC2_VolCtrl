@@ -163,13 +163,6 @@ were adapted from the Arduino HardwareSerial.h library by Tim Sharpe on
 #define UART_BUFFER_OVERFLOW  0x0200              /**< receive ringbuffer overflow */
 #define UART_NO_DATA          0x0100              /**< no receive data available   */
 
-/*
-** Line delimiter and line buffer size of uart0_getln()
-*/
-#define  LINE_DELIMITER '\r'
-#define  LINE_BUF_SIZE 80 //80 putty window length
-extern char uart0_line_buf[];
-
 /* Macros, to allow use of legacy names */
 
 /** @brief Macro to initialize USART0 (only available on selected ATmegas) @see uart0_init */
@@ -315,18 +308,6 @@ extern uint16_t uart0_available(void);
  *  @brief   Flush bytes waiting in receive buffer
  */
 extern void uart0_flush(void);
-
-/**
- *  @brief   Reads a line from receive buffer
- *  @return  String containing the read line
- */
-uint16_t uart0_getln(char* uart0_line_buf);
-
-/**
- *  @brief   Reads a line from receive buffer
- *  @return  UART error code byte
- */
-uint16_t uart0_errchk(uint16_t rec_val);
 
 
 

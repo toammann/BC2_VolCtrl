@@ -148,8 +148,6 @@ Date        Description
 	static volatile uint8_t UART_TxBuf[UART_TX0_BUFFER_SIZE];
 	static volatile uint8_t UART_RxBuf[UART_RX0_BUFFER_SIZE];
 
-	char uart0_line_buf[LINE_BUF_SIZE];
-
 	#if defined(USART0_LARGE_BUFFER)
 		static volatile uint16_t UART_TxHead;
 		static volatile uint16_t UART_TxTail;
@@ -434,117 +432,7 @@ void uart0_flush(void)
 	}
 } /* uart0_flush */
 
-/*************************************************************************
-Function: uart0_errchk()
-Purpose:  checks the error bytes and transmits an error message via UART in 
-		  case of an error
-Input:    None
-Returns:  boolean false if no error was found; true if an error occured
-**************************************************************************/
-uint16_t uart0_errchk(uint16_t rec_val){
-	
-	if (rec_val & UART_FRAME_ERROR ){
-		uart0_puts("UART_FRAME_ERROR occurred!");
-		return UART_FRAME_ERROR;
-	}
-	else if (rec_val & UART_OVERRUN_ERROR){
-		uart0_puts("UART_OVERRUN_ERROR occurred!");
-		return UART_OVERRUN_ERROR;
-	}
-	else if (rec_val & UART_BUFFER_OVERFLOW){
-		uart0_puts("UART_BUFFER_OVERFLOW occurred!");
-		return UART_BUFFER_OVERFLOW;
-	}
-	else if (rec_val & UART_NO_DATA){
-		uart0_puts("UART_NO_DATA occurred!");
-		return UART_NO_DATA;
-	}
-	return 0;
-}
-
-/*************************************************************************
-Function: uart0_getln()
-Purpose:  reads a line from UART buffer (delimiter); '\b' and DEL=127 are 
-		  ignored and the most recent chr is deleted
-		  The implementation is non blocking
-Input:    pointer to a line buffer
-Returns:  0x00 no bytes available
-		  0x01 one line was read successfully
-		  0x02 UART transmit Error occurred
-**************************************************************************/
-uint16_t uart0_getln(char* uart0_line_buf)
-{
-	if (uart0_available() > 0){
-		//Bytes received
-		static uint8_t uart0_line_buf_len = 0;
-		
-		uint16_t rec_val;		//received value
-		char rec_c;				//received character
-		
-		rec_val = uart0_getc();
-		rec_c = (char)rec_val;	//lower 8 bit
-		
-		//Check for receive errors
-		if ( uart0_errchk(rec_val) ){
-			return uart0_errchk(rec_val);
-		}
-
-		// Process character
-		// mit peak \n\r abfangen!
-		
-		if ( rec_c == LINE_DELIMITER ){
-			//EOL reached
-			
-			if (uart0_line_buf_len != 0){
-				//reset buffer index
-				uart0_line_buf_len = 0;
-			}
-			else{
-				//first character was a delimiter -> set terminator to first buffer index
-				//(empty string)
-				uart0_line_buf[uart0_line_buf_len] = 0;
-			}
-			return 0x01;
-		}
-		else {
-			//EOL not reached 
-			
-			//Ignore backspace and "DEL" (=127)
-			if ( rec_c == '\b' || rec_c == 127 ){
-				//delete the most recent character
-				//Prevent buf len from overflow
-				if (uart0_line_buf_len > 1) uart0_line_buf_len--;
-				//uart0_line_buf_len--;
-			}
-			else{
-				//-> store to buffer
-				if(uart0_line_buf_len < LINE_BUF_SIZE){
-					uart0_line_buf[uart0_line_buf_len++] = rec_c;
-					uart0_line_buf[uart0_line_buf_len] = 0; // append the null terminator
-				}
-				else{
-					//buffer full -> print error message
-					uart0_puts("Line length exceeds buffer!");
-				}
-			}
-		}
-	}
-	return 0x00;
-}
 #endif /* defined(USART0_ENABLED) */
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
