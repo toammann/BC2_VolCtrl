@@ -6,6 +6,8 @@ CMD\cmd.c
 
 CMD\cmdparser.c
 
+IMRP\irmp.c
+
 main.c
 
 UART\uart.c

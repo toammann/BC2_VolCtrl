@@ -26,7 +26,7 @@
     <OverrideVtorValue>exception_table</OverrideVtorValue>
     <BootSegment>2</BootSegment>
     <ResetRule>0</ResetRule>
-    <eraseonlaunchrule>1</eraseonlaunchrule>
+    <eraseonlaunchrule>0</eraseonlaunchrule>
     <EraseKey />
     <AsfFrameworkConfig>
       <framework-data xmlns="">
@@ -48,13 +48,13 @@
         <InterfaceProperties>
           <IspClock>125000</IspClock>
         </InterfaceProperties>
-        <InterfaceName>debugWIRE</InterfaceName>
+        <InterfaceName>ISP</InterfaceName>
       </ToolOptions>
       <ToolType>com.atmel.avrdbg.tool.atmelice</ToolType>
       <ToolNumber>J41800044284</ToolNumber>
       <ToolName>Atmel-ICE</ToolName>
     </com_atmel_avrdbg_tool_atmelice>
-    <avrtoolinterface>debugWIRE</avrtoolinterface>
+    <avrtoolinterface>ISP</avrtoolinterface>
     <avrtoolinterfaceclock>125000</avrtoolinterfaceclock>
     <com_atmel_avrdbg_tool_simulator>
       <ToolOptions xmlns="">
@@ -161,6 +161,21 @@
     <Compile Include="CMD\cmdparser.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="IMRP\irmp.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="IMRP\irmp.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="IMRP\irmpconfig.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="IMRP\irmpprotocols.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="IMRP\irmpsystem.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="main.c">
       <SubType>compile</SubType>
     </Compile>
@@ -173,6 +188,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="CMD" />
+    <Folder Include="IMRP" />
     <Folder Include="UART" />
   </ItemGroup>
   <Import Project="$(AVRSTUDIO_EXE_PATH)\\Vs\\Compiler.targets" />

@@ -50,8 +50,7 @@ uint8_t cmd_parser(char* cmd){
 	for (int i = 0; i < NUM_CMDS; i++)
 	{
 		//search for the input cmd string in available commands
-		if ( strcmp( token, cmd_set[i].cmd_word ) == 0)
-		{
+		if ( strcmp( token, cmd_set[i].cmd_word ) == 0){
 			//cmd string matches a command
 			detc_cmd = &cmd_set[i];
 		}
@@ -61,6 +60,7 @@ uint8_t cmd_parser(char* cmd){
 		//No cmd string found
 		uart0_puts("Unknown command!\r\n");
 		return -1;
+		
 	}
 					 
 	//all other tokens are arguments

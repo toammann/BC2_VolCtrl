@@ -17,6 +17,8 @@ command cmd_set[NUM_CMDS] ={{0, &volup, "volup"},
 							{2, &setVolume, "setvol"}};
 
 
+
+
 void volup(uint8_t argc, char *argv[]){
 	uart0_puts("volup detected\r\n");
 }

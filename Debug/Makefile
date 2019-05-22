@@ -34,6 +34,7 @@ LINKER_SCRIPT_DEP:=
 # Every subdirectory with source files must be described here
 SUBDIRS :=  \
 ../CMD \
+../IMRP \
 ../UART
 
 
@@ -41,6 +42,7 @@ SUBDIRS :=  \
 C_SRCS +=  \
 ../CMD/cmd.c \
 ../CMD/cmdparser.c \
+../IMRP/irmp.c \
 ../main.c \
 ../UART/uart.c
 
@@ -54,24 +56,28 @@ ASM_SRCS +=
 OBJS +=  \
 CMD/cmd.o \
 CMD/cmdparser.o \
+IMRP/irmp.o \
 main.o \
 UART/uart.o
 
 OBJS_AS_ARGS +=  \
 CMD/cmd.o \
 CMD/cmdparser.o \
+IMRP/irmp.o \
 main.o \
 UART/uart.o
 
 C_DEPS +=  \
 CMD/cmd.d \
 CMD/cmdparser.d \
+IMRP/irmp.d \
 main.d \
 UART/uart.d
 
 C_DEPS_AS_ARGS +=  \
 CMD/cmd.d \
 CMD/cmdparser.d \
+IMRP/irmp.d \
 main.d \
 UART/uart.d
 
@@ -97,6 +103,13 @@ CMD/cmd.o: ../CMD/cmd.c
 	
 
 CMD/cmdparser.o: ../CMD/cmdparser.c
+	@echo Building file: $<
+	@echo Invoking: AVR/GNU C Compiler : 5.4.0
+	$(QUOTE)C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\avr8\avr8-gnu-toolchain\bin\avr-gcc.exe$(QUOTE)  -x c -funsigned-char -funsigned-bitfields -DDEBUG  -I"C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.2.209\include"  -O1 -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -g2 -Wall -mmcu=atmega328pb -B "C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.2.209\gcc\dev\atmega328pb" -c -std=gnu99 -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"   -o "$@" "$<" 
+	@echo Finished building: $<
+	
+
+IMRP/irmp.o: ../IMRP/irmp.c
 	@echo Building file: $<
 	@echo Invoking: AVR/GNU C Compiler : 5.4.0
 	$(QUOTE)C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\avr8\avr8-gnu-toolchain\bin\avr-gcc.exe$(QUOTE)  -x c -funsigned-char -funsigned-bitfields -DDEBUG  -I"C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.2.209\include"  -O1 -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -g2 -Wall -mmcu=atmega328pb -B "C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.2.209\gcc\dev\atmega328pb" -c -std=gnu99 -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"   -o "$@" "$<" 

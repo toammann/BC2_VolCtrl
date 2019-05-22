@@ -95,7 +95,7 @@ were adapted from the Arduino HardwareSerial.h library by Tim Sharpe on
 	#define USART0_ENABLED /**< Enable USART0 */
 #endif
 
-#define USART1_ENABLED
+//#define USART1_ENABLED
 
 
 /* Set size of receive and transmit buffers */
