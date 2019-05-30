@@ -21,6 +21,23 @@ command cmd_set[NUM_CMDS] ={{0, &volup, "volup"},
 
 void volup(uint8_t argc, char *argv[]){
 	uart0_puts("volup detected\r\n");
+	
+	//prüfe ob motor am anschlag
+	
+	//starte timer
+	//starte motor
+	
+	// prüfe ob motor schon läuft
+	// starte timer entsprechend neu
+	
+	//motor dreht anders rum..
+	//-> stoppe motor
+	//-> starte motor anders rum
+	//-> starte timer
+
+
+	//timer stoppt den motor!
+	//notfall timer implementieren
 }
 
 void voldown(uint8_t argc, char *argv[]){
