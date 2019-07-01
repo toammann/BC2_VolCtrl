@@ -5,7 +5,6 @@
  *  Author: holzi
  */ 
 
-
 #include <inttypes.h>
 
 #ifndef CMD_ACTION_H_
@@ -34,7 +33,15 @@ extern command cmd_set[NUM_CMDS];
 
 void volup(uint8_t argc, char *argv[]);
 void voldown(uint8_t argc, char *argv[]);
-void setVolume(uint8_t argc, char *argv[]);
+void setvolume(uint8_t argc, char *argv[]);
 
+
+uint8_t chk_adc_range(uint16_t);
+
+extern uint8_t inc_cnt_stat;
+extern uint8_t motor_stat;
+extern volatile uint16_t adc_val;
+
+extern void error_led(uint8_t);
 
 #endif /* CMD_ACTION_H_ */
