@@ -161,6 +161,9 @@
     <Compile Include="CMD\cmdparser.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="CMD\fsm.c">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="IMRP\irmp.c">
       <SubType>compile</SubType>
     </Compile>

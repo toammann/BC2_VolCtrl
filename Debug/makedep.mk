@@ -6,6 +6,8 @@ CMD\cmd.c
 
 CMD\cmdparser.c
 
+CMD\fsm.c
+
 IMRP\irmp.c
 
 main.c

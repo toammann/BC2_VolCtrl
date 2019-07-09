@@ -9,7 +9,9 @@
 #ifndef VOLCTRL_H_
 #define VOLCTRL_H_
 
-#define F_CPU 12000000UL  // Systemtakt in Hz - Definition als unsigned long beachten
+#define FW_VERSION	"v1.0"
+#define F_CPU		8000000UL  // Systemtakt in Hz - Definition als unsigned long beachten
+#define BAUDRATE	57600
 
 #ifndef TRUE
 #  define FALSE   0
@@ -32,17 +34,28 @@
 #define MOTOR_OFF_DELAY_MS		100	//Motor off delay if the rotation direction is changed
 
 
-#define ADC_POT_HI_TH 800
-#define ADC_POT_LO_TH 200
-#define ADC_POT_STAT_LO 1
-#define ADC_POT_STAT_HI 2
-#define ADC_POT_STAT_OK 0
+#define ADC_POT_HI_TH			1023
+#define ADC_POT_LO_TH			10
+#define ADC_POT_STAT_LO			1
+#define ADC_POT_STAT_HI			2
+#define ADC_POT_STAT_OK			0
 
-#define INC_DURATION			500
+#define INC_DURATION			200 //1400ms max.
+#define SETVOL_TOL				1
 
+#define CMD_IDX_VOLUP			0
+#define CMD_IDX_VOLDOWN			1
+#define CMD_IDX_SETVOL			2
+#define CMD_IDX_GETADC			3
+
+#define STATE_INIT				0
+#define STATE_VOLUP				1
+#define STATE_VOLDOWN			2
+#define STATE_SETVOL			3
+#define STATE_SETVOL_ACT		4
+#define STATE_VOLUP_ACT			5
+#define STATE_VOLDOWN_ACT		6
 
 #define TIMER_COMP_VAL(prescaler,duration) ((float) duration*F_CPU/prescaler/1000)
-//#define TIMER_COMP_VAL(prescaler,duration) (23437)
-
 
 #endif /*VOLCTRL_H_ */

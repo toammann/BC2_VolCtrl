@@ -44,5 +44,6 @@ uint16_t uart0_getln(char* uart0_line_buf);
  *  @return  16Bit UART error code
  */
 uint16_t uart0_errchk(uint16_t rec_val);
+uint8_t peek_volupdown(char* buffer);
 
 #endif /* CMD_PARSER_H_ */

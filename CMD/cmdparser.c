@@ -5,7 +5,7 @@
  *  Author: holzi
  */ 
 
-
+#include "../volctrl.h"
 #include "cmdparser.h"
 #include "cmd.h"
 #include <avr/io.h>
@@ -76,7 +76,7 @@ uint8_t cmd_parser(char* cmd){
 
 			//Check number of arguments
 			if ((argc >= detc_cmd->arg_cnt) || (argc >= MAX_NUM_ARG)){
-				uart0_puts("Too many arguments!\r\n");
+				uart0_puts("The number of arguments exceeds the specified parser limit!\r\n");
 				err = 1;
 				break;
 			}
@@ -84,7 +84,7 @@ uint8_t cmd_parser(char* cmd){
 			//Check argument string length
 			tmp_strlen = strlen(token); // strlen is not including '\0'
 			if ( tmp_strlen + 1 >= MAX_ARG_LEN ){
-				uart0_puts("Max arg string length exceeded!\r\n");
+				uart0_puts("Max arg. string length exceeded!\r\n");
 				err = 1;
 				break;
 			}
@@ -136,7 +136,8 @@ Function: uart0_getln()
 Purpose:  reads a line from UART buffer (delimiter); '\b' and DEL=127 delete the most
 		  recent chr; '\n' characters are ignored
 		  The implementation is non blocking
-Input:    pointer to a line buffer
+Input:    uart0_line_buf - pointer to a line buffer
+		  rst - boolean, true flushed the uart0_line_buf 
 Returns:  0x01 no bytes available
 		  0x00 one line was read successfully
 		  0xXX02 UART transmit Error occurred (Upper 16 Bytes are the UART error code)
@@ -152,6 +153,7 @@ uint16_t uart0_getln(char* uart0_line_buf)
 		
 		rec_val = uart0_getc();
 		rec_c = (char)rec_val;	//lower 8 bit
+	
 		
 		//Check for receive errors
 		if ( uart0_errchk(rec_val) ){
@@ -199,6 +201,52 @@ uint16_t uart0_getln(char* uart0_line_buf)
 		}
 	}
 	return GET_LN_NO_BYTES;
+}
+
+
+/*************************************************************************
+Function: peek_volupdown()
+Purpose:  checks if the line buffer is a volup or voldown command
+Input:    char* to lne buffer
+Returns:  CMD_IDX_VOLUP, CMD_IDX_VOLDOWN for valid commands or 0xFF if  
+		  volup or voldown was not found
+**************************************************************************/
+uint8_t peek_volupdown(char* buffer){
+	
+	uint8_t len;
+	uint8_t max_idx;
+	
+	len = strlen(buffer);
+	
+	//Empty string
+	if(len == 0) {
+		return 0xFF;
+	}
+	
+	//Initialize max index (which is no whitespace)
+	max_idx = (len - 1);
+
+	//Search for tailing whitespaces
+	while((buffer[max_idx] == ' ') && max_idx > 0) {
+		max_idx--;
+	}
+	
+	//If max_idx == 0 -> The string contains only whitespaces -> not valid
+	//strncmp returns "0" if it is called with n = 0
+	if (max_idx == 0){
+		return 0xFF;
+	}
+	
+	//Check if volup or voldown was found 
+	if (strncmp(buffer, cmd_set[CMD_IDX_VOLUP].cmd_word, max_idx) == 0){
+		//index 0 found
+		return CMD_IDX_VOLUP;
+	}else if (strncmp(buffer, cmd_set[CMD_IDX_VOLDOWN].cmd_word, max_idx) == 0) {
+		//index 1 found
+		return CMD_IDX_VOLDOWN;
+	}
+	//volup or voldown was not found
+	return 0xFF;
 }
 
 

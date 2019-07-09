@@ -11,17 +11,35 @@
 #include <stdlib.h>
 #include <util/delay.h>
 #include "../UART/uart.h"
-
 #include <avr/interrupt.h>
-
-command cmd_set[NUM_CMDS] ={{0, &volup, "volup"},
-							{0, &voldown, "voldown"},
-							{2, &setvolume, "setvol"}};
+#include <avr/pgmspace.h>
 
 volatile uint16_t adc_val;
 
+
+
+
+const uint16_t poti_log_curve[] PROGMEM = 
+	{	10,  11,  11,  12,  13,  15,  17,
+		21,  24,  25,  28,  30,  37,  48,
+		59,  69,  79,  90, 102, 114, 125,
+		136, 147, 156, 170, 186, 191, 196,
+		207, 220, 232, 242, 256, 279, 308,
+		341, 383, 438, 500, 561, 622, 683,
+		743, 803, 861, 919, 974, 1009, 1020,
+		1023, 1023};
+
+
+
+void getadcval(uint8_t argc, char *argv[]){
+	char buf[10];
+	uart0_puts("ADC Value: ");
+	uart0_puts(itoa(adc_val, buf, 10));
+	uart0_puts("\r\n");
+}
+
 void inc_timer_start (void){
-	if (inc_cnt_stat == FALSE){
+	if (inc_timer_stat == FALSE){
 		//Reset Timer count register
 		TCNT3 = 0;
 		
@@ -29,15 +47,14 @@ void inc_timer_start (void){
 		TCCR3B |= TIMER3_PRESCALER_VAL;
 		
 		//Set timer status flag
-		inc_cnt_stat = TRUE;
+		inc_timer_stat = TRUE;
 	}
 }
 
 void inc_timer_stop (void){
 	//clear the prescaler value to stop the counter
 	TCCR3B &= ~TIMER3_PRESCALER_VAL;
-	
-	inc_cnt_stat = FALSE;
+	inc_timer_stat = FALSE;
 }
 
 void inc_timer_rst (void){
@@ -73,14 +90,15 @@ void set_motor_off (void){
 	//Set both motor ctrl pins to low
 	PORTD &=  ~(1 << PIN_MOTOR_CW);
 	PORTD &=  ~(1 << PIN_MOTOR_CCW);
+	_delay_ms(MOTOR_OFF_DELAY_MS);
 }
 
 uint8_t chk_adc_range(uint16_t val)
 {
-	if (val < ADC_POT_LO_TH ){
+	if (val <= ADC_POT_LO_TH ){
 		//Motor potentiometer left limit
 		return ADC_POT_STAT_LO;
-	} else if (val > ADC_POT_HI_TH){
+	} else if (val >= ADC_POT_HI_TH){
 		//Motor potentiometer right limit
 		return ADC_POT_STAT_HI;
 	}
@@ -105,11 +123,10 @@ void set_motor_ccw (void){
 			break;
 
 		case MOTOR_STAT_CW:
-			//Motor is turning CW -> change rotation direction
+			//Motor is turning CW -> Turn off Motor
 			set_motor_off();
+			inc_timer_stop();
 			_delay_ms(MOTOR_OFF_DELAY_MS);
-			PORTD &=  ~(1 << PIN_MOTOR_CW);		//0
-			PORTD |=  (1 << PIN_MOTOR_CCW);		//1
 			break;
 
 		default: 
@@ -128,11 +145,10 @@ void set_motor_cw (void){
 			break;
 		
 		case MOTOR_STAT_CCW:
-			//Motor is turning CCW -> change rotation direction
+			//Motor is turning CCW -> Turn off Motor
 			set_motor_off();
+			inc_timer_stop();
 			_delay_ms(MOTOR_OFF_DELAY_MS);
-			PORTD |= (1 << PIN_MOTOR_CW);		//1
-			PORTD &=  ~(1 << PIN_MOTOR_CCW);	//0
 			break;
 			
 		case MOTOR_STAT_CW:
@@ -145,113 +161,80 @@ void set_motor_cw (void){
 
 void volup(uint8_t argc, char *argv[]){
 	
+	//Broadcast a notification via UART
 	uart0_puts("volup detected\r\n");
 	
-	//Check if the Motor is at the upper (right) limit
-	if (chk_adc_range(adc_val) == ADC_POT_STAT_HI){
-		//Motor potentiometer is at right limit
-		if (DEBUG_MSG) {
-			uart0_puts("Motor @ upper lim!\r\n");
-		}
-		//Do not turn the Motor on
-		return;
-	}
-		
-	if (inc_cnt_stat == FALSE){
-		//Timer not running
-		inc_timer_start();	//Start increment timer
-		
-		//Start motor if it is not already running
-		if ( get_motor_stat() == MOTOR_STAT_OFF ){
-			set_motor_cw();		//Start motor in cw direction (volup)
-		} else {
-			//ERROR: running motor without a timer is not allowed turn on error indicator LED
-			error_led(TRUE);
-			set_motor_off();
-		}
-	} 
-	else {
-		//Timer already running (e.g from a previous volup cmd)
-		inc_timer_rst(); // restart timer
-		
-		//Rotation direction is unknown here -> handled in the set_motor_functions
-		set_motor_cw();		//Start motor in cw direction (volup)
-	}
-
-	//The motor and timer is stopped by the timer ISR
+	//Change FSM_STATE
+	FSM_STATE = STATE_VOLUP;
 	
-	//Start motor
-	
-	// prüfe ob motor schon läuft
-	// starte timer entsprechend neu
-	
-	//motor dreht anders rum..
-	//-> stoppe motor
-	//-> starte motor anders rum
-	//-> starte timer
-
-
-	//timer stoppt den motor!
-	//notfall timer implementieren
 }
 
 void voldown(uint8_t argc, char *argv[]){
+	//Broadcast a notification via UART
 	uart0_puts("voldown detected\r\n");
 	
-	//Check if the Motor is at the lower (left) limit
-	if (chk_adc_range(adc_val) == ADC_POT_STAT_LO){
-		//Motor potentiometer is at right limit
-		if (DEBUG_MSG) {
-			uart0_puts("Motor @ lower lim!\r\n");
-		}
-		//Do not turn the Motor on
-		return;
-	}
-	
-	if (inc_cnt_stat == FALSE){
-		//Timer not running
-		inc_timer_start();	//Start increment timer
-		
-		//Start motor if it is not already running
-		if ( get_motor_stat() == MOTOR_STAT_OFF ){
-			set_motor_ccw();		//Start motor in ccw direction (voldown)
-			} else {
-			//ERROR: running motor without a timer is not allowed turn on error indicator LED
-			error_led(TRUE);
-			set_motor_off();
-		}
-	}
-	else {
-		//Timer already running (e.g from a previous volup cmd)
-		inc_timer_rst(); // restart timer
-		
-		//Rotation direction is unknown here -> handled in the set_motor_functions
-		//A change of the rotation direction is possible
-		set_motor_ccw();		//Start motor in cw direction (volup)
-	}
+	//Change FSM_STATE
+	FSM_STATE = STATE_VOLDOWN;
 }
 
 void setvolume(uint8_t argc, char *argv[]){
-	char buffer[5];
-		
+	
 	uart0_puts("setvolume detected\r\n");
-		
-	uart0_puts("argc: ");
-	uart0_puts(itoa(argc, buffer, 10));
-	uart0_puts("\r\n");
-		
-	for (int i=0; i < argc; i++)
-	{
-		uart0_puts("argv: ");
-		uart0_puts(argv[i]);
+
+	int idx;
+	char buffer[5];
+
+	#if DEBUG_MSG
+		uart0_puts("argc: ");
+		uart0_puts(itoa(argc, buffer, 10));
 		uart0_puts("\r\n");
+		
+		for (int i=0; i < argc; i++)
+		{
+			uart0_puts("argv: ");
+			uart0_puts(argv[i]);
+			uart0_puts("\r\n");
+		}
+	#endif
+	
+	//Get integer from argument vector (string)
+	idx = atoi( argv[0] );
+	
+
+	
+	if ( (idx > 100) || (idx < 0) ){
+		uart0_puts("Argument out of range!\r\n");
+		//error_led(TRUE);
+		return;
 	}
+	
+	//Result gets cropped if it not a integer
+	//->ne next smaller value is taken. z.B. 99/2=49.5 -> 49
+	idx = idx /2;
+
+	//To accsess data from program memory
+	//Adress the data as normal -> take the address &()
+	//use pgm_read marko
+	setvol_targ = pgm_read_word( &(poti_log_curve[idx]) );
+	
+	//Switch to STATE_SETVOL FSM State
+	FSM_STATE = STATE_SETVOL;
+	
+	#if DEBUG_MSG
+		uart0_puts("Target ADC value: ");
+		uart0_puts(itoa(setvol_targ, buffer, 10));
+		uart0_puts("\r\n");
+	#endif
 }
 
-ISR(TIMER3_COMPA_vect)
-{
-	PORTC ^= ( 1<< PORTC2);
-	//every INC_DURATION ms
-	set_motor_off();
-	inc_timer_stop();
+
+void error_led (uint8_t status){
+	if ( status ){
+		//Turn ERROR LED on
+		PORTB |= (1 << ERROR_LED);
+	}
+	else {
+		//Turn ERROR LED off
+		PORTB &= ~(1 << ERROR_LED);
+	}
 }
