@@ -11,7 +11,7 @@
 #include "cmd.h"
 #include "../IMRP/irmp.h"
 #include <inttypes.h>
-
+#include <util/atomic.h>
 #include "stdlib.h"
 
 uint8_t ir_cmd_volup = 16;
@@ -31,6 +31,12 @@ void fsm (void)
 	int tmp_err = 0;
 	uint8_t tmp;
 	char buf[10];
+	
+	uint16_t adc_val_fsm = 0;
+	
+	  ATOMIC_BLOCK(ATOMIC_FORCEON){
+		adc_val_fsm =   adc_val;
+	  }
 	
 	
 	switch ( FSM_STATE ) {
@@ -77,7 +83,7 @@ void fsm (void)
 			
 		case STATE_VOLUP:
 		//Check if the Motor is at the upper (right) limit
-		if (chk_adc_range(adc_val) == ADC_POT_STAT_HI){
+		if (chk_adc_range(adc_val_fsm) == ADC_POT_STAT_HI){
 			//Motor potentiometer is at right limit
 			#if DEBUG_MSG
 			uart0_puts("Motor @ upper lim.!\r\n");
@@ -117,7 +123,7 @@ void fsm (void)
 
 		case STATE_VOLDOWN:
 		//Check if the Motor is at the lower (left) limit
-		if (chk_adc_range(adc_val) == ADC_POT_STAT_LO){
+		if (chk_adc_range(adc_val_fsm) == ADC_POT_STAT_LO){
 			//Motor potentiometer is at right limit
 			#if DEBUG_MSG
 			uart0_puts("Motor @ lower lim.!\r\n");
@@ -203,7 +209,7 @@ void fsm (void)
 		}
 			
 		//Check if the Motor reached the limit
-		if (chk_adc_range(adc_val) == ADC_POT_STAT_HI){
+		if (chk_adc_range(adc_val_fsm) == ADC_POT_STAT_HI){
 			#if DEBUG_MSG
 			uart0_puts("Motor @ upper lim.!\r\n");
 			#endif
@@ -265,7 +271,7 @@ void fsm (void)
 		}
 
 		//Check if the Motor reached the limit
-		if (chk_adc_range(adc_val) == ADC_POT_STAT_LO){
+		if (chk_adc_range(adc_val_fsm) == ADC_POT_STAT_LO){
 			#if DEBUG_MSG
 			uart0_puts("Motor @ lower lim.!\r\n");
 			#endif
@@ -276,7 +282,7 @@ void fsm (void)
 		break;
 			
 		case STATE_SETVOL:
-			tmp_err = adc_val - setvol_targ;
+			tmp_err = adc_val_fsm - setvol_targ;
 		
 			if (abs(tmp_err) < SETVOL_TOL) {
 					//Noting to do
@@ -286,7 +292,7 @@ void fsm (void)
 				}
 			
 			//Get correct rotation direction
-			if (adc_val < setvol_targ) {
+			if (adc_val_fsm < setvol_targ) {
 				//We have to rotate CW
 				set_motor_cw();
 			}
@@ -298,7 +304,7 @@ void fsm (void)
 			break;
 			
 		case STATE_SETVOL_ACT:
-			tmp_err = adc_val - setvol_targ;
+			tmp_err = adc_val_fsm - setvol_targ;
 		
 			//Motor passed the correct value
 			if ( ((tmp_err > 0) && (get_motor_stat() != MOTOR_STAT_CCW)) ||

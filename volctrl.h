@@ -40,7 +40,7 @@
 #define ADC_POT_STAT_HI			2
 #define ADC_POT_STAT_OK			0
 
-#define INC_DURATION			200 //1400ms max.
+#define INC_DURATION			150 //1400ms max.
 #define SETVOL_TOL				1
 
 #define CMD_IDX_VOLUP			0

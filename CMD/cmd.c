@@ -13,11 +13,9 @@
 #include "../UART/uart.h"
 #include <avr/interrupt.h>
 #include <avr/pgmspace.h>
+#include <util/atomic.h>
 
 volatile uint16_t adc_val;
-
-
-
 
 const uint16_t poti_log_curve[] PROGMEM = 
 	{	10,  11,  11,  12,  13,  15,  17,
@@ -29,12 +27,14 @@ const uint16_t poti_log_curve[] PROGMEM =
 		743, 803, 861, 919, 974, 1009, 1020,
 		1023, 1023};
 
-
-
 void getadcval(uint8_t argc, char *argv[]){
+	
 	char buf[10];
 	uart0_puts("ADC Value: ");
-	uart0_puts(itoa(adc_val, buf, 10));
+
+	ATOMIC_BLOCK(ATOMIC_FORCEON){
+		  uart0_puts(itoa(adc_val, buf, 10));
+	}
 	uart0_puts("\r\n");
 }
 
@@ -200,8 +200,6 @@ void setvolume(uint8_t argc, char *argv[]){
 	//Get integer from argument vector (string)
 	idx = atoi( argv[0] );
 	
-
-	
 	if ( (idx > 100) || (idx < 0) ){
 		uart0_puts("Argument out of range!\r\n");
 		//error_led(TRUE);
@@ -210,7 +208,7 @@ void setvolume(uint8_t argc, char *argv[]){
 	
 	//Result gets cropped if it not a integer
 	//->ne next smaller value is taken. z.B. 99/2=49.5 -> 49
-	idx = idx /2;
+	idx = idx/2;
 
 	//To accsess data from program memory
 	//Adress the data as normal -> take the address &()

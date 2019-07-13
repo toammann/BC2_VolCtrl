@@ -24,6 +24,7 @@ CMD/fsm.d CMD/fsm.o: ../CMD/fsm.c ../CMD/../volctrl.h \
  c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\avr8\avr8-gnu-toolchain\avr\include\avr\interrupt.h \
  ../CMD/../CMD/../IMRP/irmpconfig.h ../CMD/../CMD/../IMRP/irmpprotocols.h \
  ../CMD/cmd.h ../CMD/../IMRP/irmp.h \
+ c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\avr8\avr8-gnu-toolchain\avr\include\util\atomic.h \
  c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\avr8\avr8-gnu-toolchain\avr\include\stdlib.h
 
 ../CMD/../volctrl.h:
@@ -85,5 +86,7 @@ c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\avr8\avr8-gnu-toolchain\avr\
 ../CMD/cmd.h:
 
 ../CMD/../IMRP/irmp.h:
+
+c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\avr8\avr8-gnu-toolchain\avr\include\util\atomic.h:
 
 c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\avr8\avr8-gnu-toolchain\avr\include\stdlib.h:
