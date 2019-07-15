@@ -14,34 +14,110 @@
 #include <util/atomic.h>
 #include "stdlib.h"
 
-uint8_t ir_cmd_volup = 16;
-uint8_t ir_cmd_voldown = 17;
 
-static char * itoh (char * buf, uint8_t digits, uint16_t number)
-{
-	for (buf[digits] = 0; digits--; number >>= 4)
-	{
-		buf[digits] = "0123456789ABCDEF"[number & 0x0F];
+static int adc_run_dist;
+static uint8_t tmp;
+static uint16_t adc_val_fsm = 0;
+static char tmp_cmd_str[MAX_CMD_WORD_LEN + MAX_ARG_LEN*MAX_NUM_ARG];
+
+static ir_key_data ir_key_tmp;
+static uint8_t cmd_idx_tmp;
+static uint8_t cmd_idx_tmp_stat;
+
+void get_ir_cmd_idx(IRMP_DATA irmp_tmp_dat, uint8_t* cmd_idx_stat, uint8_t* cmd_idx){
+		
+	ir_key_tmp.ir_addr =  irmp_data.address;
+	ir_key_tmp.ir_cmd = irmp_data.command;
+	ir_key_tmp.ir_prot = irmp_data.protocol;
+			
+	for (int i = 0; i < ir_keyset_len; i++){
+				
+		if ( memcmp( (void*) &(ir_key_tmp), (void*) &(ir_keyset[i].key_data), sizeof(ir_key_data)) == 0){
+			//Valid key found!
+			*cmd_idx =  ir_keyset[i].cmd_idx;
+			*cmd_idx_stat = TRUE;
+			return;
+		}
 	}
-	return buf;
+	//No key found!
+	*cmd_idx_stat = FALSE;
+	*cmd_idx = 0xFF;
 }
 
-void fsm (void)
-{
-	int tmp_err = 0;
-	uint8_t tmp;
-	char buf[10];
+void check_for_new_cmds_volupdown_act(void){
 	
-	uint16_t adc_val_fsm = 0;
+	if (CMD_REC_IR){
+		//IR-Commands
+		get_ir_cmd_idx(irmp_data, &cmd_idx_tmp_stat, &cmd_idx_tmp);
+		
+		if (cmd_idx_tmp_stat){
+			if (cmd_idx_tmp == CMD_IDX_VOLUP){
+				FSM_STATE = STATE_VOLUP;
+				CMD_REC_IR = 0;
+				return;
+			}
+			else if (cmd_idx_tmp == CMD_IDX_VOLDOWN){
+				FSM_STATE = STATE_VOLDOWN;
+				CMD_REC_IR = 0;
+				return;
+			}
+		}
+		
+		//The Received Command was not a volup or voldown command
+		//->No retrigger
+		inc_timer_stop();
+		set_motor_off();
+		FSM_STATE = STATE_INIT;
+	}
+		
+	if (CMD_REC_UART){
+		//UART
+		tmp = peek_volctrl(uart0_line_buf);
+		if (tmp == CMD_IDX_VOLUP){
+			FSM_STATE = STATE_VOLUP;
+			CMD_REC_UART = 0;
+			return;
+		}
+		else if (tmp == CMD_IDX_VOLDOWN){
+			FSM_STATE = STATE_VOLDOWN;
+			CMD_REC_UART = 0;
+			return;
+		}
+		//The Received Command was not a volup or voldown command
+		//->No retrigger
+		inc_timer_stop();
+		set_motor_off();
+		FSM_STATE = STATE_INIT;
+	}
+}
+
+
+void fsm (void){
+
+	//adc_run_dist = 0;
+
 	
-	  ATOMIC_BLOCK(ATOMIC_FORCEON){
+	//Check uart for new messages
+	if (uart0_getln(uart0_line_buf) == GET_LN_RECEIVED){
+		//got a command via UART (WiFi)
+		CMD_REC_UART = TRUE;
+	}
+
+	//Check IRMP for new messages
+	if (irmp_get_data (&irmp_data)){
+		// got an IR message
+		CMD_REC_IR = TRUE;
+	}
+
+	//Get current adc value for poti position reading
+	ATOMIC_BLOCK(ATOMIC_FORCEON){
 		adc_val_fsm =   adc_val;
 	  }
 	
 	
 	switch ( FSM_STATE ) {
 		case STATE_INIT:
-		//Init State, do nothing (waiting for commands)
+		//Init State, do nothing (wait for commands)
 			
 		//Wait for UART-commands
 		if (CMD_REC_UART) {
@@ -52,30 +128,44 @@ void fsm (void)
 
 		if (CMD_REC_IR){
 			#if DEBUG_MSG
-			uart0_puts ("protocol: 0x");
-			itoh (buf, 2, irmp_data.protocol);
-			uart0_puts (buf);
+				char buf[10];
+				uart0_puts_p(PSTR("protocol: 0x"));
+				itoh (buf, 2, irmp_data.protocol);
+				uart0_puts(buf);
 				
-			uart0_puts ("   address: 0x");
-			itoh (buf, 4, irmp_data.address);
-			uart0_puts (buf);
+				uart0_puts_p(PSTR("   address: 0x"));
+				itoh (buf, 4, irmp_data.address);
+				uart0_puts(buf);
 				
-			uart0_puts ("   command: 0x");
-			itoh (buf, 4, irmp_data.command);
-			uart0_puts (buf);
+				uart0_puts_p(PSTR("   command: 0x"));
+				itoh (buf, 4, irmp_data.command);
+				uart0_puts(buf);
 				
-			uart0_puts ("   flags: 0x");
-			itoh (buf, 2, irmp_data.flags);
-			uart0_puts (buf);
-			uart0_puts("\r\n");
+				uart0_puts_p(PSTR("   flags: 0x"));
+				itoh (buf, 2, irmp_data.flags);
+				uart0_puts(buf);
+				uart0_puts_p(PSTR("\r\n"));
 			#endif
 				
-			//volup() and voldown() will handle the FSM_STATE varialbe
-			if (irmp_data.command == ir_cmd_volup){
-				volup(0, NULL);
-			}
-			else if (irmp_data.command == ir_cmd_voldown){
-				voldown(0,NULL);
+
+			//Check if the received IR-Command matches a key in the keyset
+			ir_key_tmp.ir_addr =  irmp_data.address;
+			ir_key_tmp.ir_cmd = irmp_data.command;
+			ir_key_tmp.ir_prot = irmp_data.protocol;
+			
+			for (int i = 0; i < ir_keyset_len; i++){
+				
+				if ( memcmp( (void*) &(ir_key_tmp), (void*) &(ir_keyset[i].key_data), sizeof(ir_key_data)) == 0){
+					//Valid key found!
+
+					//Build cmd string
+					strcpy(tmp_cmd_str, cmd_set[ir_keyset[i].cmd_idx].cmd_word);
+					strcat(tmp_cmd_str, ir_keyset[i].arg_str);
+					
+					//Pass the data to cmd parser
+					cmd_parser(tmp_cmd_str);
+					//THe commands will handle the FSM_STATE Variable
+				}
 			}
 			CMD_REC_IR = 0;
 		}
@@ -85,9 +175,8 @@ void fsm (void)
 		//Check if the Motor is at the upper (right) limit
 		if (chk_adc_range(adc_val_fsm) == ADC_POT_STAT_HI){
 			//Motor potentiometer is at right limit
-			#if DEBUG_MSG
-			uart0_puts("Motor @ upper lim.!\r\n");
-			#endif
+			uart0_puts_p(PSTR("Motor @ upper lim.!\r\n"));
+			
 			//Do not turn the Motor on
 			//Stop timers go to init
 			FSM_STATE = STATE_INIT;
@@ -99,7 +188,7 @@ void fsm (void)
 			
 		if (inc_timer_stat == FALSE){
 			//Timer not running
-			inc_timer_start();	//Start increment timer
+			inc_timer_start();
 				
 			//Start motor if it is not already running
 			if ( get_motor_stat() == MOTOR_STAT_OFF ){
@@ -122,169 +211,91 @@ void fsm (void)
 		break;
 
 		case STATE_VOLDOWN:
-		//Check if the Motor is at the lower (left) limit
-		if (chk_adc_range(adc_val_fsm) == ADC_POT_STAT_LO){
-			//Motor potentiometer is at right limit
-			#if DEBUG_MSG
-			uart0_puts("Motor @ lower lim.!\r\n");
-			#endif
-			//Do not turn the motor on
-			FSM_STATE = STATE_INIT;
-			inc_timer_stop();
-			set_motor_off();
-			break;
-		}
-			
-		if (inc_timer_stat == FALSE){
-			//Timer not running
-			inc_timer_start();	//Start increment timer
+			//Check if the Motor is at the lower (left) limit
+			if (chk_adc_range(adc_val_fsm) == ADC_POT_STAT_LO){
+				//Motor potentiometer is at right limit
+				uart0_puts_p(PSTR("Motor @ lower lim.!\r\n"));
 				
-			//Start motor if it is not already running
-			if ( get_motor_stat() == MOTOR_STAT_OFF ){
-				set_motor_ccw();		//Start motor in ccw direction (voldown)
-				} else {
-				//ERROR: running motor without a timer is not allowed turn on error indicator LED
-				error_led(TRUE);
+				//Do not turn the motor on
+				FSM_STATE = STATE_INIT;
+				inc_timer_stop();
 				set_motor_off();
+				break;
 			}
-		}
-		else {
-			//Timer already running (e.g from a previous volup cmd)
-			inc_timer_rst(); // restart timer
+			
+			if (inc_timer_stat == FALSE){
+				//Timer not running
+				inc_timer_start();
 				
-			//Rotation direction is unknown, here -> handled in set_motor_cw()
-			set_motor_ccw();
-		}
-		FSM_STATE = STATE_VOLDOWN_ACT;
+				//Start motor if it is not already running
+				if ( get_motor_stat() == MOTOR_STAT_OFF ){
+					set_motor_ccw();		//Start motor in ccw direction (voldown)
+					} else {
+					//ERROR: running motor without a timer is not allowed turn on error indicator LED
+					error_led(TRUE);
+					set_motor_off();
+				}
+			}
+			else {
+				//Timer already running (e.g from a previous volup cmd)
+				inc_timer_rst(); // restart timer
+				
+				//Rotation direction is unknown, here -> handled in set_motor_cw()
+				set_motor_ccw();
+			}
+			FSM_STATE = STATE_VOLDOWN_ACT;
 		break;
 			
 		case STATE_VOLUP_ACT:
-		//Timer stopped (time elapsed)
-		if ( !inc_timer_stat){
-			//INC-Duration exceeded
-			set_motor_off();
-			FSM_STATE = STATE_INIT;
-			break;
-		}
+			//Timer stopped (time elapsed)
+			if ( !inc_timer_stat){
+				//INC-Duration exceeded
+				set_motor_off();
+				FSM_STATE = STATE_INIT;
+				break;
+			}
 			
-		//New Command Received
-		if (CMD_REC_IR){
-			if (irmp_data.command == ir_cmd_volup){
-				FSM_STATE = STATE_VOLUP;
-				CMD_REC_IR = 0;
-				break;
-			}
-			else if (irmp_data.command == ir_cmd_voldown){
-				FSM_STATE = STATE_VOLDOWN;
-				CMD_REC_IR = 0;
-				break;
-			}
-			//Other IR Command than VOLUP or VOLDOWN
-			//No Re-Trigger of inc_conter
-			inc_timer_stop();
-			set_motor_off();
-			FSM_STATE = STATE_INIT;
+			//New Command Received
+			check_for_new_cmds_volupdown_act();
+			
+			//Check if the Motor reached the limit
+			if (chk_adc_range(adc_val_fsm) == ADC_POT_STAT_HI){
 				
-		}
-
-		if (CMD_REC_UART){
-			//UART
-			tmp = peek_volupdown(uart0_line_buf);
-			if (tmp == CMD_IDX_VOLUP){
-				FSM_STATE = STATE_VOLUP;
-				CMD_REC_UART = 0;
-				break;
-			}
-			else if (tmp == CMD_IDX_VOLDOWN){
-				FSM_STATE = STATE_VOLDOWN;
-				CMD_REC_UART = 0;
-				break;
-			}
-			//The Received Command was not a volup or voldown command
-			//->No retrigger
-			inc_timer_stop();
-			set_motor_off();
-			FSM_STATE = STATE_INIT;
-			break;
-		}
-			
-		//Check if the Motor reached the limit
-		if (chk_adc_range(adc_val_fsm) == ADC_POT_STAT_HI){
-			#if DEBUG_MSG
-			uart0_puts("Motor @ upper lim.!\r\n");
-			#endif
-			set_motor_off();
-			inc_timer_stop();
-			FSM_STATE = STATE_INIT;
-		}
-		break;
-			
-		case STATE_VOLDOWN_ACT:
-		//Timer stopped (time elapsed)
-		if ( !inc_timer_stat){
-			//INC-Duration exceeded
-			set_motor_off();
-			FSM_STATE = STATE_INIT;
-			break;
-		}
-
-		//New command received
-		if (CMD_REC_IR){
-			if (irmp_data.command == ir_cmd_volup){
-				FSM_STATE = STATE_VOLUP;
-				CMD_REC_IR = 0;
-				break;
-			}
-			else if (irmp_data.command == ir_cmd_voldown){
-				FSM_STATE = STATE_VOLDOWN;
-				CMD_REC_IR = 0;
-				break;
-			}
-			//Other IR Command than VOLUP or VOLDOWN
-			//No Re-Trigger of inc_conter
-			inc_timer_stop();
-			set_motor_off();
-			FSM_STATE = STATE_INIT;
+				uart0_puts_p(PSTR("Motor @ upper lim.!\r\n"));
 				
-		}
-			
-		if (CMD_REC_UART){
-			//UART
-			tmp = peek_volupdown(uart0_line_buf);
-			if (tmp == CMD_IDX_VOLUP){
-				FSM_STATE = STATE_VOLUP;
-				CMD_REC_UART = 0;
-				break;
+				set_motor_off();
+				inc_timer_stop();
+				FSM_STATE = STATE_INIT;
 			}
-			else if (tmp == CMD_IDX_VOLDOWN){
-				FSM_STATE = STATE_VOLDOWN;
-				CMD_REC_UART = 0;
-				break;
-			}
-			//The Received Command was not a volup or voldown command
-			//->No retrigger
-				
-			inc_timer_stop();
-			set_motor_off();
-			FSM_STATE = STATE_INIT;
 			break;
-		}
+			
+			case STATE_VOLDOWN_ACT:
+			//Timer stopped (time elapsed)
+			if ( !inc_timer_stat){
+				//INC-Duration exceeded
+				set_motor_off();
+				FSM_STATE = STATE_INIT;
+				break;
+			}
 
-		//Check if the Motor reached the limit
-		if (chk_adc_range(adc_val_fsm) == ADC_POT_STAT_LO){
-			#if DEBUG_MSG
-			uart0_puts("Motor @ lower lim.!\r\n");
-			#endif
-			set_motor_off();
-			inc_timer_stop();
-			FSM_STATE = STATE_INIT;
-		}
+			//New command received
+			check_for_new_cmds_volupdown_act();
+
+			//Check if the Motor reached the limit
+			if (chk_adc_range(adc_val_fsm) == ADC_POT_STAT_LO){
+				
+				uart0_puts_p(PSTR("Motor @ lower lim.!\r\n"));
+
+				set_motor_off();
+				inc_timer_stop();
+				FSM_STATE = STATE_INIT;
+			}
 		break;
 			
 		case STATE_SETVOL:
-			tmp_err = adc_val_fsm - setvol_targ;
+			adc_run_dist = adc_val_fsm - setvol_targ;
 		
-			if (abs(tmp_err) < SETVOL_TOL) {
+			if (abs(adc_run_dist) < SETVOL_TOL) {
 					//Noting to do
 					set_motor_off();
 					FSM_STATE = STATE_INIT;
@@ -304,27 +315,35 @@ void fsm (void)
 			break;
 			
 		case STATE_SETVOL_ACT:
-			tmp_err = adc_val_fsm - setvol_targ;
+			adc_run_dist = adc_val_fsm - setvol_targ;
 		
 			//Motor passed the correct value
-			if ( ((tmp_err > 0) && (get_motor_stat() != MOTOR_STAT_CCW)) ||
-			((tmp_err < 0) && (get_motor_stat() != MOTOR_STAT_CW))) {
+			if ( ((adc_run_dist > 0) && (get_motor_stat() != MOTOR_STAT_CCW)) ||
+			((adc_run_dist < 0) && (get_motor_stat() != MOTOR_STAT_CW))) {
 				set_motor_off();
-				uart0_puts("Volume search error!\r\n");
+				uart0_puts_p(PSTR("Volume search error!\r\n"));
 				FSM_STATE = STATE_INIT;
 				error_led(TRUE);
 			}
 			
-			if (abs(tmp_err) < SETVOL_TOL) {
+			if (abs(adc_run_dist) < SETVOL_TOL) {
 				set_motor_off();
 				FSM_STATE = STATE_INIT;
 				break;
 			}
 			
+
 			if (CMD_REC_IR){
-				if ( (irmp_data.command == ir_cmd_volup) ||  (irmp_data.command == ir_cmd_voldown) ){
-					//Dismiss command
-					CMD_REC_IR = 0;
+				get_ir_cmd_idx(irmp_data, &cmd_idx_tmp_stat, &cmd_idx_tmp);
+				
+				if (cmd_idx_tmp_stat){
+					if (cmd_idx_tmp == CMD_IDX_VOLUP || cmd_idx_tmp == CMD_IDX_VOLDOWN){
+						//Dismiss command
+						CMD_REC_IR = 0;
+					}
+					//else if (cmd_idx_tmp == CMD_IDX_SETVOL){
+						//
+					//}
 				}
 				//Other IR Command than VOLUP or VOLDOWN
 				//Stop motor go to init and process the cmd
@@ -336,8 +355,8 @@ void fsm (void)
 
 			if (CMD_REC_UART){
 				//UART
-				tmp = peek_volupdown(uart0_line_buf);
-				if (tmp == CMD_IDX_VOLUP || tmp == CMD_IDX_VOLDOWN){
+				cmd_idx_tmp = peek_volctrl(uart0_line_buf);
+				if (cmd_idx_tmp == CMD_IDX_VOLUP || cmd_idx_tmp == CMD_IDX_VOLDOWN){
 					//Dismiss command
 					CMD_REC_UART = 0;
 				}

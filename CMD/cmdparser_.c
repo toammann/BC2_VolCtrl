@@ -26,6 +26,7 @@ Returns:  0x00 no error occoured
 **************************************************************************/			 
 uint8_t cmd_parser(char* cmd){
 					 
+		 
 	command_ptr detc_cmd = NULL;
 	char delim[] = " ,";		// " " and ","
 					 
@@ -53,8 +54,9 @@ uint8_t cmd_parser(char* cmd){
 					 
 	if (detc_cmd == NULL){
 		//No cmd string found
-		uart0_puts_p(PSTR("Unknown command!\r\n"));
+		uart0_puts("Unknown command!\r\n");
 		return -1;
+		
 	}
 					 
 	//all other tokens are arguments
@@ -69,9 +71,8 @@ uint8_t cmd_parser(char* cmd){
 		if( !(strcmp(token, "") == 0) ){
 
 			//Check number of arguments
-			//if ((argc >= detc_cmd->arg_cnt) || (argc >= MAX_NUM_ARG)){
-			if (argc >= MAX_NUM_ARG){
-				uart0_puts_p(PSTR("The number of arguments exceeds the specified parser limit!\r\n"));
+			if ((argc >= detc_cmd->arg_cnt) || (argc >= MAX_NUM_ARG)){
+				uart0_puts("The number of arguments exceeds the specified parser limit!\r\n");
 				err = 1;
 				break;
 			}
@@ -79,7 +80,7 @@ uint8_t cmd_parser(char* cmd){
 			//Check argument string length
 			tmp_strlen = strlen(token); // strlen is not including '\0'
 			if ( tmp_strlen + 1 >= MAX_ARG_LEN ){
-				uart0_puts_p(PSTR("Max arg. string length exceeded!\r\n"));
+				uart0_puts("Max arg. string length exceeded!\r\n");
 				err = 1;
 				break;
 			}
@@ -89,7 +90,7 @@ uint8_t cmd_parser(char* cmd){
 							 
 			if (argv[argc] == NULL){
 				//Memory allocation failed
-				uart0_puts_p(PSTR("Memory allocation failed!\r\n"));
+				uart0_puts("Memory allocation failed!\r\n");
 				err = 1;
 				break;
 			}
@@ -106,12 +107,8 @@ uint8_t cmd_parser(char* cmd){
 					 
 	//all arguments parsed, check if the correct number of arguments was found
 	//do not print a error message if the err flag is already set
-	//if ( (argc != detc_cmd->arg_cnt) && (err == 0) ){
-		
-	//Check if required arguments are present
-	//more arguments are OK
-	if ( (argc < detc_cmd->arg_cnt) && (err == 0)){
-		uart0_puts_p(PSTR("Required arguments not present!\r\n"));
+	if ( (argc != detc_cmd->arg_cnt) && (err == 0) ){
+		uart0_puts("Incorrect number of Arguments!\r\n");
 		err=1;
 	}
 					 
@@ -159,7 +156,6 @@ uint16_t uart0_getln(char* uart0_line_buf)
 			return ( uart0_errchk(rec_val) | GET_LN_REC_ERR);
 		}
 
-
 		if ( rec_c == LINE_DELIMITER ){
 			//EOL reached
 			if (uart0_line_buf_len != 0){
@@ -195,10 +191,7 @@ uint16_t uart0_getln(char* uart0_line_buf)
 				}
 				else{
 					//buffer full -> print error message
-					uart0_puts_p(PSTR("Line length exceeds buffer!"));
-					//uart0_flush();
-					//uart0_line_buf[0] = 0
-					return GET_LN_REC_ERR;
+					uart0_puts("Line length exceeds buffer!");
 				}
 			}
 		}
@@ -208,13 +201,13 @@ uint16_t uart0_getln(char* uart0_line_buf)
 
 
 /*************************************************************************
-Function: peek_volctrl()
+Function: peek_volupdown()
 Purpose:  checks if the line buffer is a volup or voldown command
 Input:    char* to lne buffer
 Returns:  CMD_IDX_VOLUP, CMD_IDX_VOLDOWN for valid commands or 0xFF if  
 		  volup or voldown was not found
 **************************************************************************/
-uint8_t peek_volctrl(char* buffer){
+uint8_t peek_volupdown(char* buffer){
 	
 	uint8_t len;
 	uint8_t max_idx;
@@ -263,19 +256,19 @@ Returns:  boolean false if no error was found; true if an error occured
 uint16_t uart0_errchk(uint16_t rec_val){
 	
 	if (rec_val & UART_FRAME_ERROR ){
-		uart0_puts_p(PSTR("UART_FRAME_ERROR occurred!"));
+		uart0_puts("UART_FRAME_ERROR occurred!");
 		return UART_FRAME_ERROR;
 	}
 	else if (rec_val & UART_OVERRUN_ERROR){
-		uart0_puts_p(PSTR("UART_OVERRUN_ERROR occurred!"));
+		uart0_puts("UART_OVERRUN_ERROR occurred!");
 		return UART_OVERRUN_ERROR;
 	}
 	else if (rec_val & UART_BUFFER_OVERFLOW){
-		uart0_puts_p(PSTR("UART_BUFFER_OVERFLOW occurred!"));
+		uart0_puts("UART_BUFFER_OVERFLOW occurred!");
 		return UART_BUFFER_OVERFLOW;
 	}
 	else if (rec_val & UART_NO_DATA){
-		uart0_puts_p(PSTR("UART_NO_DATA occurred!"));
+		uart0_puts("UART_NO_DATA occurred!");
 		return UART_NO_DATA;
 	}
 	return 0;

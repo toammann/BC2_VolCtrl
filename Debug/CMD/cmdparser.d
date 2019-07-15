@@ -24,6 +24,7 @@ CMD/cmdparser.d CMD/cmdparser.o: ../CMD/cmdparser.c ../CMD/../volctrl.h \
  c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\avr8\avr8-gnu-toolchain\avr\include\avr\pgmspace.h \
  c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\avr8\avr8-gnu-toolchain\avr\include\avr\interrupt.h \
  ../CMD/../CMD/../IMRP/irmpconfig.h ../CMD/../CMD/../IMRP/irmpprotocols.h \
+ c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\avr8\avr8-gnu-toolchain\avr\include\avr\eeprom.h \
  ../CMD/cmd.h ../CMD/../IMRP/irmp.h \
  c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\avr8\avr8-gnu-toolchain\avr\include\stdlib.h
 
@@ -82,6 +83,8 @@ c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\avr8\avr8-gnu-toolchain\avr\
 ../CMD/../CMD/../IMRP/irmpconfig.h:
 
 ../CMD/../CMD/../IMRP/irmpprotocols.h:
+
+c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\avr8\avr8-gnu-toolchain\avr\include\avr\eeprom.h:
 
 ../CMD/cmd.h:
 

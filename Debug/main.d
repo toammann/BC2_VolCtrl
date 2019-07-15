@@ -23,8 +23,9 @@ main.d main.o: .././main.c .././volctrl.h \
  c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\avr8\avr8-gnu-toolchain\avr\include\math.h \
  c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\avr8\avr8-gnu-toolchain\avr\include\avr\pgmspace.h \
  ../././CMD/../CMD/../IMRP/irmpconfig.h \
- ../././CMD/../CMD/../IMRP/irmpprotocols.h ../././IMRP/irmp.h \
- ../././CMD/cmd.h ../././CMD/../IMRP/irmp.h
+ ../././CMD/../CMD/../IMRP/irmpprotocols.h \
+ c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\avr8\avr8-gnu-toolchain\avr\include\avr\eeprom.h \
+ ../././IMRP/irmp.h ../././CMD/cmd.h ../././CMD/../IMRP/irmp.h
 
 .././volctrl.h:
 
@@ -83,6 +84,8 @@ c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\avr8\avr8-gnu-toolchain\avr\
 ../././CMD/../CMD/../IMRP/irmpconfig.h:
 
 ../././CMD/../CMD/../IMRP/irmpprotocols.h:
+
+c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\avr8\avr8-gnu-toolchain\avr\include\avr\eeprom.h:
 
 ../././IMRP/irmp.h:
 

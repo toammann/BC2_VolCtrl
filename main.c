@@ -15,6 +15,7 @@
 //#include <util/delay.h>
 #include "./IMRP/irmp.h"
 #include "./CMD/cmd.h"
+#include "avr/eeprom.h"
 
 //#include "stdlib.h"
 
@@ -22,23 +23,34 @@
 volatile uint8_t inc_timer_stat = 0;
 volatile uint8_t FSM_STATE = 0;
 volatile uint16_t adc_val = 0;
-uint16_t setvol_targ = 0;
+IRMP_DATA irmp_data;
 
-IRMP_DATA   irmp_data;
 
 uint8_t CMD_REC_UART = 0;
 uint8_t CMD_REC_IR = 0;
-
-command cmd_set[NUM_CMDS] ={{0, &volup, "volup"},			//CMD_IDX 0, consider define in cmd.h
-							{0, &voldown, "voldown"},		//CMD_IDX 1, consider define in cmd.h
-							{1, &setvolume, "setvol"},		//CMD_IDX 2, consider define in cmd.h
-							{0, &getadcval, "getadcval"}};	//CMD_IDX 3, consider define in cmd.h
+uint16_t setvol_targ = 0;
 
 
-//uint8_t ir_cmd_volup = 16;
-//uint8_t ir_cmd_voldown = 17;
 
-//timer 0 für fehler überwachung
+command cmd_set[NUM_CMDS] = {{0, &volup,	 "volup"},			//CONSIDER INDEXES!
+							 {0, &voldown,	 "voldown"},		
+							 {1, &setvolume, "setvol"},		
+							 {0, &getadcval, "getadcval"},
+							 {2, &regrem,	 "regrem"},
+							 {1, &delrem,	 "delrem"},
+							 {0, &showrem, "showrem"},
+							 {1, &set5vled, "set5vled"},
+							 {1, &set3v3led, "set3v3led"} };
+								 
+								 
+uint8_t ir_keyset_len = 0;
+ir_key ir_keyset[IR_KEY_MAX_NUM];
+
+uint8_t EEMEM eeprom_ir_keyset_len = 0;
+uint8_t EEMEM eeprom_pwr_5v_led = 1;
+uint8_t EEMEM eeprom_pwr_3v3_led = 1;
+ir_key EEMEM eeprom_ir_keyset[IR_KEY_MAX_NUM];
+char EEMEM eeprom_ir_key_desc[IR_KEY_MAX_NUM][MAX_ARG_LEN];
 
 //Volume increment counter
 void timer3_init (void){
@@ -112,7 +124,6 @@ ISR(ADC_vect){
 				
 int main(void)
 {
-	
     irmp_init();			// initialize IRMP
 	timer1_init();			//IRMP Timer
 	timer3_init();			//Volume increment timer
@@ -121,23 +132,50 @@ int main(void)
 	uart0_init(UART_BAUD_SELECT(BAUDRATE, F_CPU));
 	//uart1_init(UART_BAUD_SELECT(BAUDRATE, F_CPU));
 
-	_delay_ms(200);			//wait until the boot message of ESP8266 at 74880 baud has passed
+
 	
-	uart0_puts("Hello here is the VolCtrl FW ");
-	uart0_puts(FW_VERSION);
-	uart0_puts("\r\n");
+	uart0_puts_p(PSTR("Hello here is the VolCtrl FW "));
+	uart0_puts_p(PSTR(FW_VERSION));
+	uart0_puts_p(PSTR("\r\n"));
 	
 	//Pin Configurations
 	//Direction Control Register (1=output, 0=input)
 	DDRB = (1 << ERROR_LED); 
 	DDRC = (1 << PORTC2);
-	DDRD = (1 << PIN_MOTOR_CW) | (1 << PIN_MOTOR_CCW);
+	DDRE = (1 << PWR_5V_LED); 
+	DDRD = (1 << PIN_MOTOR_CW) | (1 << PIN_MOTOR_CCW) | (1 << PWR_3V3_LED);;
 
 	//Pullup Config
 	PORTD = 0;				//Deactivate pullups
 
 	error_led(FALSE);		//Turn off Error LED
-
+	
+	
+	//Read Data from EEPROM
+	ir_keyset_len = eeprom_read_byte(&eeprom_ir_keyset_len);
+	eeprom_read_block( (void*) ir_keyset , (void*) eeprom_ir_keyset, sizeof(eeprom_ir_keyset));
+	
+	//5V Power LED Disable
+	 if (eeprom_read_byte(&eeprom_pwr_5v_led)){
+		 //Turn LED on
+		 PORTE |= (1 << PWR_5V_LED);
+	 } else {
+		//Turn LED off
+		 PORTE &= ~(1 << PWR_5V_LED);
+	 }
+	 
+	//3V3 Power LED Disable
+	if (eeprom_read_byte(&eeprom_pwr_3v3_led)){
+		//Turn LED on
+		PORTD |= (1 << PWR_3V3_LED);
+		} else {
+		//Turn LED off
+		PORTD &= ~(1 << PWR_3V3_LED);
+	}
+	
+	
+	_delay_ms(200);			//wait until the boot message of ESP8266 at 74880 baud has passed
+	
 	sei();					//Activate Interrupts
 
 	while (1)
@@ -145,17 +183,6 @@ int main(void)
 		//uart0_puts(itoa(adc_val, buf, 10));
 		//uart0_puts("\r\n");
 		
-		if (uart0_getln(uart0_line_buf) == GET_LN_RECEIVED){
-			//got a command via UART (WiFi)
-			//cmd_parser(uart0_line_buf);
-			CMD_REC_UART = TRUE;
-		}
-		
-		if (irmp_get_data (&irmp_data)){
-			// got an IR message
-			CMD_REC_IR = TRUE;
-		}
-
 
 		fsm();
 

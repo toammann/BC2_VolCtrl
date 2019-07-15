@@ -22,7 +22,6 @@
 #define  LINE_DELIMITER		'\r'
 #define  LINE_BUF_SIZE		80 //80 putty window length
 
-
 extern char uart0_line_buf[];
 
 /**
@@ -44,6 +43,6 @@ uint16_t uart0_getln(char* uart0_line_buf);
  *  @return  16Bit UART error code
  */
 uint16_t uart0_errchk(uint16_t rec_val);
-uint8_t peek_volupdown(char* buffer);
+uint8_t peek_volctrl(char* buffer);
 
 #endif /* CMD_PARSER_H_ */
