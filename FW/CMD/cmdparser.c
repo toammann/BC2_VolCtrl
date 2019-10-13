@@ -1,8 +1,11 @@
 /*
  * cmd_parser.c
+ * 
+ * A string parser for UART Commands. It searched for command words in cmd_set and 
+ * checks the for the correct number of arguments.
  *
- * Created: 13.04.2019 14:51:44
- *  Author: holzi
+ * Created: 13.04.2019 14:52:07
+ *  Author: Tobias Ammann
  */ 
 
 #include "../volctrl.h"
@@ -13,7 +16,6 @@
 #include <string.h>
 
 char uart0_line_buf[LINE_BUF_SIZE];		//Line buffer used by uart0_getln
-
 
 
 /*************************************************************************
@@ -27,7 +29,7 @@ Returns:  0x00 no error occoured
 uint8_t cmd_parser(char* cmd){
 					 
 	command_ptr detc_cmd = NULL;
-	char delim[] = " ,";		// " " and ","
+	char delim[] = CMD_SEPARATORS;		// " " and ","
 					 
 	uint8_t argc;				//Recognized argument count
 	uint8_t err;				//Error-Flag
@@ -48,6 +50,7 @@ uint8_t cmd_parser(char* cmd){
 		if ( strcmp( token, cmd_set[i].cmd_word ) == 0){
 			//cmd string matches a command
 			detc_cmd = &cmd_set[i];
+			break;
 		}
 	}
 					 
@@ -209,44 +212,80 @@ uint16_t uart0_getln(char* uart0_line_buf)
 
 /*************************************************************************
 Function: peek_volctrl()
-Purpose:  checks if the line buffer is a volup or voldown command
+Purpose:  checks if the line buffer is a volup, voldown or setvol command
 Input:    char* to lne buffer
-Returns:  CMD_IDX_VOLUP, CMD_IDX_VOLDOWN for valid commands or 0xFF if  
-		  volup or voldown was not found
+Returns:  CMD_IDX_VOLUP, CMD_IDX_VOLDOWN, CMD_IDX_SETVOL for valid commands 
+		  or 0xFF if none of the volctrl commands was found
 **************************************************************************/
 uint8_t peek_volctrl(char* buffer){
 	
-	uint8_t len;
-	uint8_t max_idx;
+	uint8_t detc_cmd_idx = 0xFF;
+	char delim[] = CMD_SEPARATORS;		// " " and ","
 	
-	len = strlen(buffer);
+	uint8_t argc = 0;				//Recognized argument count
+
+	uint8_t tmp_strlen = strlen(buffer);
 	
 	//Empty string
-	if(len == 0) {
+	if(tmp_strlen == 0) {
 		return 0xFF;
 	}
 	
-	//Initialize max index (which is no whitespace)
-	max_idx = (len - 1);
-
-	//Search for tailing whitespaces
-	while((buffer[max_idx] == ' ') && max_idx > 0) {
-		max_idx--;
+	
+	//Receive the first token
+	char *token = strtok(buffer, delim);
+	
+	//The first token is the command word
+	for (int i = 0; i < NUM_CMDS; i++)
+	{
+		//search for the input cmd string in available commands
+		if ( strcmp( token, cmd_set[i].cmd_word ) == 0){
+			//cmd string matches a command
+			detc_cmd_idx = i;
+			break;
+		}
 	}
 	
-	//If max_idx == 0 -> The string contains only whitespaces -> not valid
-	//strncmp returns "0" if it is called with n = 0
-	if (max_idx == 0){
+	if (detc_cmd_idx == 0xFF){
+		//No cmd string found
 		return 0xFF;
 	}
 	
 	//Check if volup or voldown was found 
-	if (strncmp(buffer, cmd_set[CMD_IDX_VOLUP].cmd_word, max_idx) == 0){
-		//index 0 found
-		return CMD_IDX_VOLUP;
-	}else if (strncmp(buffer, cmd_set[CMD_IDX_VOLDOWN].cmd_word, max_idx) == 0) {
-		//index 1 found
-		return CMD_IDX_VOLDOWN;
+	if ( (detc_cmd_idx == CMD_IDX_VOLUP) || (detc_cmd_idx == CMD_IDX_VOLDOWN)){
+		//Volup or voldown was found -> no arguments
+		return detc_cmd_idx;
+	}
+	
+	if (detc_cmd_idx == CMD_IDX_SETVOL){
+		//Setvol cmd -> Get the token
+		token = strtok(NULL, delim);
+		
+		while(token != NULL)
+		{
+			//ignore empty tokens (eg. 10, 11) the " " would be a empty token
+			if( !(strcmp(token, "") == 0) ){
+				//Check number of arguments
+				if (argc >= MAX_NUM_ARG){
+					return 0xFF;
+				}
+							
+				//Check argument string length
+				tmp_strlen = strlen(token); // strlen is not including '\0'
+				if ( tmp_strlen + 1 >= MAX_ARG_LEN ){
+					return 0xFF;
+				}
+				
+				//increase argument counter
+				argc++;
+			}
+			//Fetch the next token to process
+			token = strtok(NULL, delim);
+		}
+		
+		if (argc == cmd_set[CMD_IDX_SETVOL].arg_cnt){
+			return CMD_IDX_SETVOL;
+		}
 	}
 	//volup or voldown was not found
 	return 0xFF;

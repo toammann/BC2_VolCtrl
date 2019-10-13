@@ -1,8 +1,13 @@
 /*
  * fsm.c
  *
+ * Implements a finite-state-machine which controlles
+ * the ALPS motor potentiometer all "not volume control command" gets
+ * executed right away. The volume control commands "setvol, volup, voldown" changes
+ * the states in the fsm. For a visual representation of the fsm refer to github
+ *
  * Created: 08.07.2019 22:31:15
- *  Author: holzi
+ *  Author: Tobias Ammann
  */ 
 
 #include "../volctrl.h"
@@ -14,7 +19,6 @@
 #include <util/atomic.h>
 #include "stdlib.h"
 
-
 static int adc_run_dist;
 static uint8_t tmp;
 static uint16_t adc_val_fsm = 0;
@@ -22,19 +26,26 @@ static char tmp_cmd_str[MAX_CMD_WORD_LEN + MAX_ARG_LEN*MAX_NUM_ARG];
 
 static ir_key_data ir_key_tmp;
 static uint8_t cmd_idx_tmp;
+static uint8_t keyset_idx_tmp;
 static uint8_t cmd_idx_tmp_stat;
 
-void get_ir_cmd_idx(IRMP_DATA irmp_tmp_dat, uint8_t* cmd_idx_stat, uint8_t* cmd_idx){
+
+static uint8_t CMD_REC_UART = 0;
+static uint8_t CMD_REC_IR = 0;
+
+//Retuns the CMD index of the received IR Command
+void get_ir_cmd_idx(IRMP_DATA irmp_tmp_dat, uint8_t* cmd_idx_stat, uint8_t* cmd_idx, uint8_t* keyset_idx){
 		
 	ir_key_tmp.ir_addr =  irmp_data.address;
 	ir_key_tmp.ir_cmd = irmp_data.command;
 	ir_key_tmp.ir_prot = irmp_data.protocol;
 			
-	for (int i = 0; i < ir_keyset_len; i++){
+	for (uint8_t i = 0; i < ir_keyset_len; i++){
 				
 		if ( memcmp( (void*) &(ir_key_tmp), (void*) &(ir_keyset[i].key_data), sizeof(ir_key_data)) == 0){
 			//Valid key found!
 			*cmd_idx =  ir_keyset[i].cmd_idx;
+			*keyset_idx = i;
 			*cmd_idx_stat = TRUE;
 			return;
 		}
@@ -44,11 +55,13 @@ void get_ir_cmd_idx(IRMP_DATA irmp_tmp_dat, uint8_t* cmd_idx_stat, uint8_t* cmd_
 	*cmd_idx = 0xFF;
 }
 
+//Checks for a new command while a volup or voldown cmd is active
 void check_for_new_cmds_volupdown_act(void){
+	char line_buf_tmp[LINE_BUF_SIZE];
 	
 	if (CMD_REC_IR){
 		//IR-Commands
-		get_ir_cmd_idx(irmp_data, &cmd_idx_tmp_stat, &cmd_idx_tmp);
+		get_ir_cmd_idx(irmp_data, &cmd_idx_tmp_stat, &cmd_idx_tmp, &keyset_idx_tmp);
 		
 		if (cmd_idx_tmp_stat){
 			if (cmd_idx_tmp == CMD_IDX_VOLUP){
@@ -72,7 +85,9 @@ void check_for_new_cmds_volupdown_act(void){
 		
 	if (CMD_REC_UART){
 		//UART
-		tmp = peek_volctrl(uart0_line_buf);
+		//make a copy of uart line buffer, peek_volctrl modifies the string
+		strcpy(line_buf_tmp, uart0_line_buf);
+		tmp = peek_volctrl(line_buf_tmp);
 		if (tmp == CMD_IDX_VOLUP){
 			FSM_STATE = STATE_VOLUP;
 			CMD_REC_UART = 0;
@@ -91,11 +106,11 @@ void check_for_new_cmds_volupdown_act(void){
 	}
 }
 
-
+//FINITE-STATE-MACHINE
 void fsm (void){
 
 	//adc_run_dist = 0;
-
+	char line_buf_tmp[LINE_BUF_SIZE];
 	
 	//Check uart for new messages
 	if (uart0_getln(uart0_line_buf) == GET_LN_RECEIVED){
@@ -147,6 +162,15 @@ void fsm (void){
 				uart0_puts_p(PSTR("\r\n"));
 			#endif
 				
+			if (irmp_data.flags == 1) {
+				//Ignore repetitive keypresses
+				//Only the first button press should trigger a
+				//Command it is possible that a button was pressed 
+				//to stop the setvol command. The second ir comannd (with flag == 1)
+				//should not trigger a cmd as this is not intended by the human
+				CMD_REC_IR = 0;
+				break;
+			}
 
 			//Check if the received IR-Command matches a key in the keyset
 			ir_key_tmp.ir_addr =  irmp_data.address;
@@ -334,32 +358,52 @@ void fsm (void){
 			
 
 			if (CMD_REC_IR){
-				get_ir_cmd_idx(irmp_data, &cmd_idx_tmp_stat, &cmd_idx_tmp);
+				get_ir_cmd_idx(irmp_data, &cmd_idx_tmp_stat, &cmd_idx_tmp, &keyset_idx_tmp);
 				
 				if (cmd_idx_tmp_stat){
 					if (cmd_idx_tmp == CMD_IDX_VOLUP || cmd_idx_tmp == CMD_IDX_VOLDOWN){
-						//Dismiss command
+						//Ignore command
 						CMD_REC_IR = 0;
 					}
-					//else if (cmd_idx_tmp == CMD_IDX_SETVOL){
-						//
-					//}
+					else if (cmd_idx_tmp == CMD_IDX_SETVOL){
+						//Retrigger of setvolume, possibly with a new target value
+						//execute the complete setvol cmd!
+						strcpy(tmp_cmd_str, cmd_set[cmd_idx_tmp].cmd_word);
+						strcat(tmp_cmd_str, ir_keyset[keyset_idx_tmp].arg_str);
+						
+						//Pass the data to cmd parser
+						cmd_parser(tmp_cmd_str);
+						CMD_REC_IR = 0;
+						break;
+					}
 				}
-				//Other IR Command than VOLUP or VOLDOWN
+				
+				//Other IR Command than VOLUP, VOLDOWN or SETVOl
 				//Stop motor go to init and process the cmd
-				//inc_timer_stop();
 				set_motor_off();
 				FSM_STATE = STATE_INIT;
+				//CMD_REC_IR = 0;
 				break;
+				
 			}
 
 			if (CMD_REC_UART){
 				//UART
-				cmd_idx_tmp = peek_volctrl(uart0_line_buf);
+				//make a copy of uart line buffer, peek_volctrl modifies the string
+				strcpy(line_buf_tmp, uart0_line_buf);
+				cmd_idx_tmp = peek_volctrl(line_buf_tmp);
+				
 				if (cmd_idx_tmp == CMD_IDX_VOLUP || cmd_idx_tmp == CMD_IDX_VOLDOWN){
 					//Dismiss command
 					CMD_REC_UART = 0;
+				} 
+				else if (cmd_idx_tmp == CMD_IDX_SETVOL){
+					//Execute Setvol CMD -> retrigger
+					cmd_parser(uart0_line_buf);
+					CMD_REC_UART = 0;
+					break;
 				}
+				
 				//Other UART Command than VOLUP or VOLDOWN
 				//Stop motor go to init and process the cmd
 				//inc_timer_stop();

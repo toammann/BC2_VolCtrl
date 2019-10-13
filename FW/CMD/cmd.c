@@ -1,8 +1,13 @@
 /*
- * cmd_action.c
+ * cmd.c
+ *
+ * A collection of functions needed by the BC2VolCtrl FW. It contains the target functions 
+ * for all commands in the command set. The Command parser parses a input string and then executes
+ * the corresponding function in cmd.c. A pressed ir-key registered in ir-keyset also triggers a the
+ * target function in cmd.c 
  *
  * Created: 13.04.2019 15:10:54
- *  Author: holzi
+ *  Author: Tobias Ammann
  */ 
 
 #include "../volctrl.h"
@@ -17,17 +22,21 @@
 #include <stdlib.h>
 #include "avr/eeprom.h"
 
+//Constant array which holdes the logarithmic potetntiometer curve of 
+//The alps poti
 const uint16_t poti_log_curve[] PROGMEM = 
-	{	10,  11,  11,  12,  13,  15,  17,
-		21,  24,  25,  28,  30,  37,  48,
-		59,  69,  79,  90, 102, 114, 125,
-		136, 147, 156, 170, 186, 191, 196,
-		207, 220, 232, 242, 256, 279, 308,
-		341, 383, 438, 500, 561, 622, 683,
-		743, 803, 861, 919, 974, 1009, 1020,
-		1023, 1023};
-		
-		
+	{	10,   10,   11,   11,   11,   11,   12,   13,   13,   14,
+		15,   16,   17,   19,   21,   22,   24,   25,   25,   26,
+		28,   29,   30,   31,   37,   42,   48,   53,   59,   64,
+		69,   74,   79,   84,   90,   96,   102,  108,  114,  119,
+		125,  131,  136,  142,  147,  152,  156,  161,  166,  171,
+		176,  180,  185,  191,  196,  201,  207,  213,  220,  226,
+		232,  237,  242,  248,  256,  267,  279,  292,  308,  325,
+		341,  361,  383,  407,  438,  469,  500,  531,  561,  592,
+		622,  653,  683,  713,  743,  773,  803,  832,  861,  890,
+		919,  947,  974,  996,  1009, 1016, 1020, 1022, 1023, 1023, 1023};
+
+//Converts a integer to a hexadecimal string representation
 char * itoh (char * buf, uint8_t digits, uint16_t number)
 {
 	for (buf[digits] = 0; digits--; number >>= 4)
@@ -37,6 +46,7 @@ char * itoh (char * buf, uint8_t digits, uint16_t number)
 	return buf;
 }
 
+//Gets the current adc read value and prints the result to uart0
 void getadcval(uint8_t argc, char *argv[]){
 	
 	char buf[11];
@@ -49,6 +59,7 @@ void getadcval(uint8_t argc, char *argv[]){
 	uart0_puts_p(PSTR("\r\n"));
 }
 
+//Start the increment timer
 void inc_timer_start (void){
 	if (inc_timer_stat == FALSE){
 		//Reset Timer count register
@@ -62,17 +73,20 @@ void inc_timer_start (void){
 	}
 }
 
+//Stops the increment timer
 void inc_timer_stop (void){
 	//clear the prescaler value to stop the counter
 	TCCR3B &= ~TIMER3_PRESCALER_VAL;
 	inc_timer_stat = FALSE;
 }
 
+//Resets the increment timer to zero value (re-trigger)
 void inc_timer_rst (void){
 	//Reset Timer count register
 	TCNT3 = 0;
 }
 
+//Checks the GPIO Pins for motor status and returns a value defined in
 uint8_t get_motor_stat(void){
 	uint8_t pin_motor_cw = (PIND & (1 << PIN_MOTOR_CW));
 	uint8_t pin_motor_ccw = (PIND & (1 << PIN_MOTOR_CCW));
@@ -97,6 +111,7 @@ uint8_t get_motor_stat(void){
 	return -1;
 }
 
+//Turns the motor off via GPIOs
 void set_motor_off (void){
 	//Set both motor ctrl pins to low
 	PORTD &=  ~(1 << PIN_MOTOR_CW);
@@ -104,6 +119,8 @@ void set_motor_off (void){
 	_delay_ms(MOTOR_OFF_DELAY_MS);
 }
 
+//Checks if the current adc value is within its allowed range
+//To chekc if the motor reached its the upper or lower boundary
 uint8_t chk_adc_range(uint16_t val)
 {
 	if (val <= ADC_POT_LO_TH ){
@@ -119,6 +136,8 @@ uint8_t chk_adc_range(uint16_t val)
 	}
 }
 
+//Turns the motor in CCW direction, checks the current motor state
+//and reacts to it (e.g. turn the motor off, before changing the rotation direction)
 void set_motor_ccw (void){
 	
 	switch (get_motor_stat()){
@@ -138,6 +157,10 @@ void set_motor_ccw (void){
 			set_motor_off();
 			inc_timer_stop();
 			_delay_ms(MOTOR_OFF_DELAY_MS);
+			
+			//Turn on in CCW direction
+			PORTD &=  ~(1 << PIN_MOTOR_CW);		//0
+			PORTD |=  (1 << PIN_MOTOR_CCW);		//1
 			break;
 
 		default: 
@@ -146,6 +169,8 @@ void set_motor_ccw (void){
 	}
 }
 
+//Turns the motor in CW direction, checks the current motor state
+//and reacts to it (e.g. turn the motor off, before changing the rotation direction)
 void set_motor_cw (void){
 	
 	switch (get_motor_stat()){
@@ -156,10 +181,14 @@ void set_motor_cw (void){
 			break;
 		
 		case MOTOR_STAT_CCW:
-			//Motor is turning CCW -> Turn off Motor
+			//Motor is turning CCW
 			set_motor_off();
 			inc_timer_stop();
 			_delay_ms(MOTOR_OFF_DELAY_MS);
+			
+			//Tur on in cw direction
+			PORTD |= (1 << PIN_MOTOR_CW);		//1
+			PORTD &=  ~(1 << PIN_MOTOR_CCW);	//0
 			break;
 			
 		case MOTOR_STAT_CW:
@@ -170,6 +199,7 @@ void set_motor_cw (void){
 	}
 }
 
+//Sets the FSM state for volup
 void volup(uint8_t argc, char *argv[]){
 	
 	if (argc > cmd_set[CMD_IDX_VOLUP].arg_cnt ){
@@ -185,6 +215,7 @@ void volup(uint8_t argc, char *argv[]){
 	
 }
 
+//Sets the FSM state for voldown
 void voldown(uint8_t argc, char *argv[]){
 	//Broadcast a notification via UART
 	
@@ -199,6 +230,7 @@ void voldown(uint8_t argc, char *argv[]){
 	FSM_STATE = STATE_VOLDOWN;
 }
 
+//Sets the FSM state for setvolume and sets the setvol_targ for the volume search
 void setvolume(uint8_t argc, char *argv[]){
 	
 	if (argc > cmd_set[CMD_IDX_SETVOL].arg_cnt){
@@ -233,10 +265,6 @@ void setvolume(uint8_t argc, char *argv[]){
 		return;
 	}
 	
-	//Result gets cropped if it not a integer
-	//->ne next smaller value is taken. z.B. 99/2=49.5 -> 49
-	idx = idx/2;
-
 	//To accsess data from program memory
 	//Adress the data as normal -> take the address &()
 	//use pgm_read marko
@@ -252,6 +280,7 @@ void setvolume(uint8_t argc, char *argv[]){
 	#endif
 }
 
+//sets the error led on or off
 void error_led (uint8_t status){
 	if ( status ){
 		//Turn ERROR LED on
@@ -263,6 +292,8 @@ void error_led (uint8_t status){
 	}
 }
 
+//Registers a new remote. Waits for a IR-Key and stores 
+//the updated ir keyset in EEPROM
 void regrem(uint8_t argc, char *argv[]){
 	
 	//check if everything is valid
@@ -401,6 +432,8 @@ void regrem(uint8_t argc, char *argv[]){
 	#endif
 }
 
+//Deletes a ir key with a specified index from the ir_keyset
+//updates the ir_keyset in eeprom
 void delrem(uint8_t argc, char *argv[]){
 	
 	if (argc > cmd_set[CMD_IDX_DELREM].arg_cnt){
@@ -455,6 +488,7 @@ void delrem(uint8_t argc, char *argv[]){
 	uart0_puts_p(PSTR("Deleted!\r\n"));
 }
 
+//Prints a table of all registered ir keys to uart0
 void showrem(uint8_t argc, char *argv[]){
 	
 	if (argc > cmd_set[CMD_IDX_SHOWREM].arg_cnt){
@@ -530,6 +564,7 @@ void showrem(uint8_t argc, char *argv[]){
 	}
 }
 
+//Turns the 5V Power LED on or off
 void set5vled(uint8_t argc, char *argv[]){
 	if (argc > cmd_set[CMD_IDX_SET5VLED].arg_cnt){
 		uart0_puts_p(PSTR("Invalid Argument count!\r\n"));
@@ -554,6 +589,7 @@ void set5vled(uint8_t argc, char *argv[]){
 	uart0_puts_p(PSTR("Invalid Argument \r\n"));
 }
 
+//Turns the 3.3V Power LED on or off
 void set3v3led(uint8_t argc, char *argv[]){
 	
 	if (argc > cmd_set[CMD_IDX_SET3V3LED].arg_cnt){
@@ -578,6 +614,3 @@ void set3v3led(uint8_t argc, char *argv[]){
 	//Invalid argument
 	uart0_puts_p(PSTR("Invalid Argument \r\n"));
 }
-
-	
-

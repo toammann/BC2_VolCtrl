@@ -1,54 +1,65 @@
 /*
- * pin_cfg.h
+ * volctrl.h
  *
  * Created: 30.05.2019 16:37:34
  *  Author: holzi
  */ 
 
-
 #ifndef VOLCTRL_H_
 #define VOLCTRL_H_
 
-#define FW_VERSION	"v1.0"
-#define F_CPU		8000000UL  // Systemtakt in Hz - Definition als unsigned long beachten
-#define BAUDRATE	57600
+#define FW_VERSION				"v1.0"		//Firmware version
+#define F_CPU					8000000UL	//System Clock in in Hz
+#define BAUDRATE				57600		//Baudrate setting
 
+#define DEBUG_MSG				1	//Toggles Debug Messages on or off
 
-#define DEBUG_MSG			1
+//DEFINES FOR THE CMD SET
+#define NUM_CMDS				9	//Numer of commands
+#define MAX_CMD_WORD_LEN		10  //Maximum cmd word length
+#define MAX_ARG_LEN				10	//Maximum arg word length
+#define MAX_NUM_ARG				3	//Maximum number of arguments
 
-#define NUM_CMDS			9
-#define MAX_CMD_WORD_LEN	10
-#define MAX_ARG_LEN			10
-#define MAX_NUM_ARG			3
+//DEFINES FOR THE REGKEY CMD
+#define IR_KEY_REG_TIMEOUT		5	 //s
+#define IR_KEY_MAX_NUM			13	 //Maxumum number of allowed keys to store in eeprom (larger number needs more ram)
 
-#define IR_KEY_REG_TIMEOUT	5	 //s
-#define IR_KEY_MAX_NUM		13
+#define MOTOR_OFF_DELAY_MS		100  //ms, Motor off delay if the rotation direction is changed
 
-#define IR_KEYSET_EEPROM_ADDR 512
+//ADC POTENTIOMETER HIGH/LOW THRESHOLD
+#define ADC_POT_HI_TH			1023
+#define ADC_POT_LO_TH			9
+
+//TOLERANCE OF THE SETVOL CMD in LSBs
+#define SETVOL_TOL				1
+
+//INC DURATION IN MS
+#define INC_DURATION			150 //1400ms max.
+
+//STATUS BYTES FOR THE HIGH/LOW BOUNDARY
+#define ADC_POT_STAT_LO			1
+#define ADC_POT_STAT_HI			2
+#define ADC_POT_STAT_OK			0
 
 #define TIMER3_PRESCALER_VAL	(1 << CS32) //TIMER1 Prescaler=256
 #define TIMER3_PRESCALER		256
 
+//MACRO TO CALCULATE THE TIMER VALUE FOR INC_DURATION
+#define TIMER_COMP_VAL(prescaler,duration) ((float) duration*F_CPU/prescaler/1000)
+
+// PIN DEFINES
 #define PIN_MOTOR_CW			PORTD3
 #define PIN_MOTOR_CCW			PORTD2
 #define ERROR_LED				PORTB5
 #define PWR_3V3_LED				PORTD5
 #define PWR_5V_LED				PORTE1
 
+//MOTOR STATUS DEFINES
 #define MOTOR_STAT_OFF			0
 #define MOTOR_STAT_CW			1
 #define MOTOR_STAT_CCW			2
-#define MOTOR_OFF_DELAY_MS		100	//Motor off delay if the rotation direction is changed
 
-#define ADC_POT_HI_TH			1023
-#define ADC_POT_LO_TH			10
-#define ADC_POT_STAT_LO			1
-#define ADC_POT_STAT_HI			2
-#define ADC_POT_STAT_OK			0
-
-#define INC_DURATION			150 //1400ms max.
-#define SETVOL_TOL				1
-
+//CMD INDEXES
 //has to be unique
 #define CMD_IDX_VOLUP			0
 #define CMD_IDX_VOLDOWN			1
@@ -60,7 +71,7 @@
 #define CMD_IDX_SET5VLED		7
 #define CMD_IDX_SET3V3LED		8
 
-
+//FSM STATES 
 #define STATE_INIT				0
 #define STATE_VOLUP				1
 #define STATE_VOLDOWN			2
@@ -68,9 +79,6 @@
 #define STATE_SETVOL_ACT		4
 #define STATE_VOLUP_ACT			5
 #define STATE_VOLDOWN_ACT		6
-
-#define TIMER_COMP_VAL(prescaler,duration) ((float) duration*F_CPU/prescaler/1000)
-
 
 
 #ifndef TRUE

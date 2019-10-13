@@ -11,9 +11,7 @@ main.d main.o: .././main.c .././volctrl.h \
  c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\avr8\avr8-gnu-toolchain\avr\include\avr\fuse.h \
  c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\avr8\avr8-gnu-toolchain\avr\include\avr\lock.h \
  c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\avr8\avr8-gnu-toolchain\avr\include\avr\interrupt.h \
- ../././UART/uart.h ../././CMD/cmdparser.h ../././CMD/../UART/uart.h \
- ../././CMD/../CMD/cmd.h ../././CMD/../CMD/../IMRP/irmp.h \
- ../././CMD/../CMD/../IMRP/irmpsystem.h \
+ ../././UART/uart.h ../././IMRP/irmp.h ../././IMRP/irmpsystem.h \
  c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\avr8\avr8-gnu-toolchain\avr\include\string.h \
  c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\avr8\avr8-gnu-toolchain\lib\gcc\avr\5.4.0\include\stddef.h \
  c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\avr8\avr8-gnu-toolchain\avr\include\stdio.h \
@@ -22,10 +20,9 @@ main.d main.o: .././main.c .././volctrl.h \
  c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\avr8\avr8-gnu-toolchain\avr\include\util\delay_basic.h \
  c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\avr8\avr8-gnu-toolchain\avr\include\math.h \
  c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\avr8\avr8-gnu-toolchain\avr\include\avr\pgmspace.h \
- ../././CMD/../CMD/../IMRP/irmpconfig.h \
- ../././CMD/../CMD/../IMRP/irmpprotocols.h \
- c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\avr8\avr8-gnu-toolchain\avr\include\avr\eeprom.h \
- ../././IMRP/irmp.h ../././CMD/cmd.h ../././CMD/../IMRP/irmp.h
+ ../././IMRP/irmpconfig.h ../././IMRP/irmpprotocols.h ../././CMD/cmd.h \
+ ../././CMD/../IMRP/irmp.h \
+ c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\avr8\avr8-gnu-toolchain\avr\include\avr\eeprom.h
 
 .././volctrl.h:
 
@@ -55,15 +52,9 @@ c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\avr8\avr8-gnu-toolchain\avr\
 
 ../././UART/uart.h:
 
-../././CMD/cmdparser.h:
+../././IMRP/irmp.h:
 
-../././CMD/../UART/uart.h:
-
-../././CMD/../CMD/cmd.h:
-
-../././CMD/../CMD/../IMRP/irmp.h:
-
-../././CMD/../CMD/../IMRP/irmpsystem.h:
+../././IMRP/irmpsystem.h:
 
 c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\avr8\avr8-gnu-toolchain\avr\include\string.h:
 
@@ -81,14 +72,12 @@ c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\avr8\avr8-gnu-toolchain\avr\
 
 c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\avr8\avr8-gnu-toolchain\avr\include\avr\pgmspace.h:
 
-../././CMD/../CMD/../IMRP/irmpconfig.h:
+../././IMRP/irmpconfig.h:
 
-../././CMD/../CMD/../IMRP/irmpprotocols.h:
-
-c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\avr8\avr8-gnu-toolchain\avr\include\avr\eeprom.h:
-
-../././IMRP/irmp.h:
+../././IMRP/irmpprotocols.h:
 
 ../././CMD/cmd.h:
 
 ../././CMD/../IMRP/irmp.h:
+
+c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\avr8\avr8-gnu-toolchain\avr\include\avr\eeprom.h:
