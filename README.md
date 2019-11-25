@@ -1,5 +1,6 @@
-<<<<<<< HEAD
-# **BC2_VolCtrl**
+
+
+# BC2_VolCtrl PCB and FW
 
 ![img](pics/3D_view.png)
 
@@ -15,7 +16,7 @@
 > The amplifier itself was designed by  Henry Westphal and his students at the technical university of Berlin in Germany. Schematic and documentation are available [here](https://www.emsp.tu-berlin.de/menue/studium_und_lehre/mixed_signal_baugruppen_alt/das_projekt_black_cat/) (only German). 
 >
 
-## Table of Contents
+## **Document link list**
 
 
 
@@ -63,13 +64,13 @@ Some IR-Remotes i.e. from CD-Players use different protocols for the majority of
 
 The versatile IRMP library enables the BC2_VolCtrl to work with almost any IR remote. You can use any free key on one of the existing remotes that are already on your coffee table to control the volume. Use the 'regrem' Telnet command to register a new key of your remote to execute any of the commands specified below with a button press. 
 
-For example you may register two keys on your TV remote with the `'volup/voldown'` commands. You can do the same with your CD-Player remotes. This enables the user to control the volume via two independent IR remotes (TV and CD-Player remote). A third key may be registered with the `'setvol 0'` command to implement a basic 'mute' function.
+For example you may register two keys on your TV remote with the `volup/voldown` commands. You can do the same with your CD-Player remotes. This enables the user to control the volume via two independent IR remotes (TV and CD-Player remote). A third key may be registered with the `setvol 0` command to implement a basic 'mute' function.
 
 ### Basic Operating Description
 
-The turning of the volume potentiometer is defined by timings. If i.e. the user enters a `'volup/voldown'` cmd via telnet or a keypress on a registered IR-remote is recognized  a timer is started and the potentiometer starts rotating. The timer will run until the time specified by 'increment duration' is exceeded.  After this period of time the timer disables itself and stops the motor. This cycle is named 'one volume increment'. 
+The turning of the volume potentiometer is defined by timings. If i.e. the user enters a `volup/voldown` cmd via telnet or a keypress on a registered IR-remote is recognized  a timer is started and the potentiometer starts rotating. The timer will run until the time specified by 'increment duration' is exceeded.  After this period of time the timer disables itself and stops the motor. This cycle is named 'one volume increment'. 
 
-If the user sends another`'volup/voldown'` request while the potentiometer is still turning the timer gets reset and the inc duration time start from the beginning. This prevents the motor from stopping when the user holds a key down.
+If the user sends another`volup/voldown` request while the potentiometer is still turning the timer gets reset and the inc duration time start from the beginning. This prevents the motor from stopping when the user holds a key down.
 
 However this behavior assumes that the update rate of the remote control is faster than the time specified by the increment duration. If this is not the case the motor movement won´t be continuous when the user holds down a volume control button. By default the increment duration is set to 100ms. With this value I found the volume step resolution to be sufficient. The update rate of all tested remotes were faster than 1/100ms.
 
@@ -115,185 +116,8 @@ The animation below shows the key registration process.
 ## Manufacturing
 
 The PCB was designed in Altium Designer. You will find all production files and the Altium project in the /PCB/ subfolder. 
-=======
 
-
-# **BC2_VolCtrl**
-
-![img](pics/3D_view.png)
-
-> The BC2_VolCtrl PCB implements a universal volume control based on the popular ALPS RK168 motor potentiometer. Balance setting is available via knob control only. The volume can be controlled via
->
-> - The old school way, turning the knob
->
-> - Standard infrared remote controls (several IR protocols)
-> - Telnet interface (Wi-Fi)
->
-> The PCB was designed for the Black Cat 2 audio tube amplifier. As the design of the PCB is universal, it may be easily integrated in other do-it-yourself amplifier projects.
->
-> The amplifier itself was designed by  Henry Westphal and his students at the technical university of Berlin in Germany. Schematic and documentation are available [here](https://www.emsp.tu-berlin.de/menue/studium_und_lehre/mixed_signal_baugruppen_alt/das_projekt_black_cat/) (only German). 
->
-> The amplifier lacks a remote control for the volume. The appearance is retro with a complete analog signal chain. I wanted to keep the signal chain analog. A motorized potentiometer fits well.
-
-[![Coverage Status](http://img.shields.io/coveralls/badges/badgerbadgerbadger.svg?style=flat-square)](https://coveralls.io/r/badges/badgerbadgerbadger) 
-
-## Table of Contents (Optional)
-
-- [Features](#Features)
-- [Description](Description)
-
-## **Features**
-
-> A list of handy features and functions of the PCB and firmware.
-
-### Functions 
-
-- Motor potentiometer for a complete analog signal chain
-- Balance setting via knob control
-- Simultaneous use of multiple IR-Remotes (i.e. control via both TV and CD-Player remotes )
-- Support of multiple IR-protocols (Sony, NEC, RC5, ...)
-- Position recognition of volume potentiometer
-- Set-up via a simple command based telnet Wi-Fi connection
-- Volume control via a telnet Wi-Fi connection (Andriod APP required)
-- ESP-Link firmware with all features on the ESP8266 - Wi-Fi module
-
-### Circuit Design 
-
-- LT3622 wide Vin step down converter (designed for VCC=12V)
-- ATmega 328pb Atmel microcontroller
-- UART-1 and one GPIO available at external connector (unsed)
-- Black-Cat 2 tube amp compatible connectors and layout
-- Layout and GND separation of control and analog signals
-- Stop position recognition of volume potentiometer for improved lifetime
-- H-bridge motor driver with 15us shoot through protection
-- Several debugging LEDs
-- Farnell bill of materials
-
-## Description
-
-### IR Protocols
-
-The firmware uses the awesome [irmp library (Infrared Multiprotocol Decoder)]( https://www.mikrocontroller.net/articles/IRMP_-_english#top) written by Frank Meyer. The library is able to decode several infrared protocols (refer to IRMP documentation for a complete list). Most of the IR-protocols have a unique start bit timing which IRMP uses to distinguish different protocols. 
-
-To enable or disable protocols simply edit /FW/IMRP/irmpconfig.h. Every protocol will require a few bytes of RAM. By default the most common IR-protocols are enabled:
-
-```c
-#define IRMP_SUPPORT_SIRCS_PROTOCOL		1  		// Sony SIRCS 			~150 bytes
-#define IRMP_SUPPORT_NEC_PROTOCOL 		1       // NEC + APPLE 			~300 bytes
-#define IRMP_SUPPORT_SAMSUNG_PROTOCOL   1       // Samsung + Samsg32  	~300 bytes
-#define IRMP_SUPPORT_KASEIKYO_PROTOCOL  1       // Kaseikyo 			~250 bytes
-#define IRMP_SUPPORT_RC5_PROTOCOL       1       // RC5 					~250 bytes
-#define IRMP_SUPPORT_RCII_PROTOCOL      1       // RCII T+A 			~250 bytes
-```
-
-Some IR-Remotes i.e. from CD-Players use different protocols for the majority of function keys and volume controls. For example my camebride audio CD-player remote uses the camebrige protocol for all function keys and the RC5 protocol for the volume up an down keys. 
-
-### Telnet Command Set
-
-
-
-## Manufacturing
-
-## Things to consider for implementation in your amplifier project
-
-
-
-- eingangsimpedanz der vorstufe
-
-- 
-
-  ## BC2 implementation 
-
-- 
-
-## First time setup
-
-
-
-- Most people will glance at your `README`, *maybe* star it, and leave
-- Ergo, people should understand instantly what your project is about based on your repo
-
-> Tips
-
-- HAVE WHITE SPACE
-- MAKE IT PRETTY
-- GIFS ARE REALLY COOL
-
-> GIF Tools
-
-- Use <a href="http://recordit.co/" target="_blank">**Recordit**</a> to create quicks screencasts of your desktop and export them as `GIF`s.
-- For terminal sessions, there's <a href="https://github.com/chjj/ttystudio" target="_blank">**ttystudio**</a> which also supports exporting `GIF`s.
-
-**Recordit**
-
-![Recordit GIF](http://g.recordit.co/iLN6A0vSD8.gif)
-
-**ttystudio**
-
-![ttystudio GIF](https://raw.githubusercontent.com/chjj/ttystudio/master/img/example.gif)
-
----
-
-## Example (Optional)
-
-```javascript
-// code away!
-
-let generateProject = project => {
-  let code = [];
-  for (let js = 0; js < project.length; js++) {
-    code.push(js);
-  }
-};
-```
-
----
-
-## Installation
-
-- All the `code` required to get started
-- Images of what it should look like
-
-### Clone
-
-- Clone this repo to your local machine using `https://github.com/fvcproductions/SOMEREPO`
-
-### Setup
-
-- If you want more syntax highlighting, format your code like this:
-
-> update and install this package first
-
-```shell
-$ brew update
-$ brew install fvcproductions
-```
-
-> now install npm and bower packages
-
-```shell
-$ npm install
-$ bower install
-```
-
-- For all the possible languages that support syntax highlithing on GitHub (which is basically all of them), refer <a href="https://github.com/github/linguist/blob/master/lib/linguist/languages.yml" target="_blank">here</a>.
-
----
-
-## Features
-## Usage (Optional)
-## Documentation (Optional)
-## Tests (Optional)
-
-- Going into more detail on code and technologies used
-- I utilized this nifty <a href="https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet" target="_blank">Markdown Cheatsheet</a> for this sample `README`.
-
----
->>>>>>> 5182a4ce44889fe193537438b3224ea362441aa3
-
-I ordered three boards at [Aisler.net]( https://aisler.net/ ) for around 50€ with a stencil included (4 Layer PCB). I was satisfied with the quality of the boards. The images below shows the old PCB rev. 1.0. I corrected some things in rev 2.0.
-
-<<<<<<< HEAD
+I ordered three boards at [Aisler.net]( https://aisler.net/ ) for around 50€ with a stencil included (4 Layer PCB). I was satisfied with the quality of the boards. The images below shows the old PCB rev. 1.0. I corrected some things in rev 1.1.
 ![up](pics/top.jpg)
 
 > Top view, ESP826607, Volume and balance potentiometer (PCB rev 1.0 with patches)
@@ -312,16 +136,58 @@ All electronic parts have [farnell](farnell.com) part numbers. I soldered the ma
 - An AVR Programmer is required to program the atmega328pb
 - <span style="color:red">I am not responsible for any damage caused by the BC2_VolCtrl PCB. Make sure the  PCB fits in your design and is functional. </span>
 
-## BC2 integration
+## Black Cat 2 integration
 
-The image below shows the PCB in a Black Cat 2 tube amplifier with 2.4GHz Wi-Fi antenna cable and IR-Sensor installed.
+The image below shows the PCB in a Black Cat 2 tube amplifier with 2.4GHz Wi-Fi antenna cable and IR-sensor installed.
 
 ![BC2 integration](pics/bc2_implement.jpg)
 
 > Black Cat 2 tube amplifier with BC2_VolCtrl installed
 
 ## First time setup
-=======
+### 1) First Power Up
+
+- Make sure the 3.3V and 5V rail are present. (Check voltage level and power LEDs)
+- Make sure you are able to read the ID of the ATmega 328pb using AVR-ISP
+
+### 2) Set up ESP8266 (esp-link v3.2.47)
+
+- Make sure to change the position of the coupling capacitor / coupling resistor at the ESP8266-07 such that the RF signal is routed to the U.FL antenna connector and NOT the chip antenna.
+
+- Set the ESP8266 to 'UART download mode': Set GPIO0 to logic zero 
+  - Remove R20
+  - Place R24
+- Connect a USB<-> RS232 Converter at X4 (ESP_UART)
+- Flash the firmware following the instructions [here]( https://github.com/jeelabs/esp-link/blob/master/FLASHING.md#initial-serial-flashing) (esp-link serial flashing)
+  - Make sure that you use the correct flash addresses for the flash size of your ESP-Module (512k/1M/4M). Example esptool cmd: `` esptool.exe --port COM4 write_flash 0x00000 boot_v1.6.bin 0x1000 user1.bin 0x3FC000 esp_init_data_default.bin 0x3FE000 blank.bin``
+  - If you have trouble flashing the firmware you may try to remove R46 and R47 and change R44, R45 to 0Ohm to route the ESP UART directly to the module
+- Set the ESP8266 to boot from flash (normal mode): Set GPIO0 to logic high
+  - Remove R24
+  - Place  R20
+- You should now be able to monitor the ESP8266 boot messages at the ESP-UART on X4 at 74880 baud
+- Connect a 50Ohm 2.4GHz Wi-Fi antenna to the ESP8266-07 U.FL connector
+- Make a search for Wi-Fi networks. A unsecured ESP-LINK access point should appear. Connect to the unsecured network (see ESP-LINK Wi-FI instructions [here]( https://github.com/jeelabs/esp-link/blob/master/WIFI-CONFIG.md ))
+- Open the ESP-LINK web Interface with your web browser using the IP http://192.168.4.1/ 
+  - Set up the connection to your Wi-Fi network. ESP-LINK will search for the network. If the ESP could not connect to it (i.e out of range) it will come up as a access point
+  - Set the baudrate to 57600 (uC Console -> Baud 57600)
+  - Set the Pin assignment as displayed below 
+
+![esp-link-cfg](pics/esp-link_cfg.png)
+
+- After a reboot of the ESP it should be a client in your Wi-Fi network with a ip-address assigned from your DNS server. (try to reach the esp-link firmware at the correct ip-address i.e.  http://192.168.178.49/)
+
+### 3) Set Up Atmega 328pb
+
+
+
+
+
+
+
+
+
+## **Known issues**
+
 > To get started...
 
 ### Step 1
