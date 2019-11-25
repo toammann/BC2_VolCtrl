@@ -24,7 +24,7 @@
 
 #### Basic Functions
 
-- Motor potentiometer for a complete analog signal chain
+- Motor potentiometer for a completely analog signal chain
 - Balance setting via knob control
 - Simultaneous use of multiple IR-Remotes (i.e. control via both: TV and CD-Player remotes )
 - Support of multiple IR-protocols (Sony, NEC, RC5, ...)
