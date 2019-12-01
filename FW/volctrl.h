@@ -12,10 +12,10 @@
 #define F_CPU					8000000UL	//System Clock in in Hz
 #define BAUDRATE				57600		//Baudrate setting
 
-#define DEBUG_MSG				1	//Toggles Debug Messages on or off
+#define DEBUG_MSG				0	//Toggles Debug Messages on or off
 
 //DEFINES FOR THE CMD SET
-#define NUM_CMDS				9	//Numer of commands
+#define NUM_CMDS				11	//Numer of commands
 #define MAX_CMD_WORD_LEN		10  //Maximum cmd word length
 #define MAX_ARG_LEN				10	//Maximum arg word length
 #define MAX_NUM_ARG				3	//Maximum number of arguments
@@ -33,8 +33,8 @@
 //TOLERANCE OF THE SETVOL CMD in LSBs
 #define SETVOL_TOL				1
 
-//INC DURATION IN MS
-#define INC_DURATION			150 //1400ms max.
+//EEPROM DEFAULT INC DURATION IN MS
+#define EEPROM_INC_DURATION		150 //1400ms max.
 
 //STATUS BYTES FOR THE HIGH/LOW BOUNDARY
 #define ADC_POT_STAT_LO			1
@@ -70,6 +70,8 @@
 #define CMD_IDX_SHOWREM			6
 #define CMD_IDX_SET5VLED		7
 #define CMD_IDX_SET3V3LED		8
+#define CMD_IDX_SETINCDUR		9
+#define CMD_IDX_GETINCDUR		10
 
 //FSM STATES 
 #define STATE_INIT				0

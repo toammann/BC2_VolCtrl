@@ -72,7 +72,7 @@ The turning of the volume potentiometer is defined by timings. If i.e. the user 
 
 If the user sends another`volup/voldown` request while the potentiometer is still turning the timer gets reset and the inc duration time start from the beginning. This prevents the motor from stopping when the user holds a key down.
 
-However this behavior assumes that the update rate of the remote control is faster than the time specified by the increment duration. If this is not the case the motor movement won´t be continuous when the user holds down a volume control button. By default the increment duration is set to 100ms. With this value I found the volume step resolution to be sufficient. The update rate of all tested remotes were faster than 1/100ms.
+However this behavior assumes that the update rate of the remote control is faster than the time specified by the increment duration. If this is not the case the motor movement won´t be continuous when the user holds down a volume control button. By default the increment duration is set to 150ms. With this value I found the volume step resolution to be sufficient. The update rate of all tested remotes were faster than 1/150ms.
 
 The Telnet Wi-FI connection of the BC2_VolCtrl PCB is handled by a ESP8266-07 with [ESP-LINK]( https://github.com/jeelabs/esp-link) firmware installed. ESP-LINK implements a Wi-Fi telnet to Serial bridge which enables the communication with the ATmega 328pb microcontroller. 
 
@@ -115,7 +115,7 @@ The animation below shows the key registration process.
 
 ## Manufacturing
 
-The PCB was designed in Altium Designer. You will find all production files and the Altium project in the /PCB/ subfolder. 
+The PCB was designed in Altium Designer. You will find all production files in the /PCB/ subfolder. 
 
 I ordered three boards at [Aisler.net]( https://aisler.net/ ) for around 50€ with a stencil included (4 Layer PCB). I was satisfied with the quality of the boards. The images below shows the old PCB rev. 1.0. I corrected some things in rev 1.1.
 ![up](pics/top.jpg)
@@ -174,7 +174,7 @@ The image below shows the PCB in a Black Cat 2 tube amplifier with 2.4GHz Wi-Fi 
 
 ![esp-link-cfg](pics/esp-link_cfg.png)
 
-- After a reboot of the ESP it should be a client in your Wi-Fi network with a ip-address assigned from your DNS server. (try to reach the esp-link firmware at the correct ip-address i.e.  http://192.168.178.49/)
+- After a reboot of the ESP it should be a client in your Wi-Fi network with a ip-address assigned from your DNS server with the settings shown in the screenshot above. (try to reach the esp-link firmware at the correct ip-address i.e.  http://192.168.178.49/)
 
 ### 3) Set Up Atmega 328pb
 

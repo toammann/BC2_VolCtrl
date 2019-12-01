@@ -40,6 +40,8 @@ IRMP_DATA irmp_data;
 uint16_t setvol_targ = 0;
 uint8_t ir_keyset_len = 0;
 ir_key ir_keyset[IR_KEY_MAX_NUM];
+uint16_t inc_dur;
+
 
 //COMMAND SET: (ALL SUPPORTED COMMANDS)
 //CONSIDER CMD INDEXES IN volctrl.h
@@ -49,16 +51,20 @@ command cmd_set[NUM_CMDS] = {{0, &volup,	 "volup"},
 							 {0, &getadcval, "getadcval"},
 							 {2, &regrem,	 "regrem"},
 							 {1, &delrem,	 "delrem"},
-							 {0, &showrem, "showrem"},
-							 {1, &set5vled, "set5vled"},
-							 {1, &set3v3led, "set3v3led"} };
+							 {0, &showrem,   "showrem"},
+							 {1, &set5vled,  "set5vled"},
+							 {1, &set3v3led, "set3v3led"}, 
+							 {1, &setincdur, "setincdur"},
+							 {0, &getincdur, "getincdur"}};
 								 
-//EEEPROM SETTINGS
-uint8_t EEMEM eeprom_ir_keyset_len = 0;
-uint8_t EEMEM eeprom_pwr_5v_led = 1;
-uint8_t EEMEM eeprom_pwr_3v3_led = 1;
-ir_key  EEMEM eeprom_ir_keyset[IR_KEY_MAX_NUM];
-char    EEMEM eeprom_ir_key_desc[IR_KEY_MAX_NUM][MAX_ARG_LEN];
+//EEEPROM DEFLAUT VALUES
+uint8_t  EEMEM eeprom_ir_keyset_len = 0;
+uint8_t  EEMEM eeprom_pwr_5v_led = 1;
+uint8_t  EEMEM eeprom_pwr_3v3_led = 1;
+ir_key   EEMEM eeprom_ir_keyset[IR_KEY_MAX_NUM];
+char     EEMEM eeprom_ir_key_desc[IR_KEY_MAX_NUM][MAX_ARG_LEN];
+uint16_t EEMEM eeprom_inc_dur = EEPROM_INC_DURATION;
+
 
 /*------------------------------------------------------------------------------------------------------
  * TIMER INITIALIZATION
@@ -75,7 +81,7 @@ static void timer3_init (void){
 
 	//Output Compare Register 3 A Low and High byte 
 	//Sets the counter value at which the interrupt gets executed
-	OCR3A = (uint16_t) TIMER_COMP_VAL(TIMER3_PRESCALER, INC_DURATION); //16Bit value is correct addressed automatically
+	OCR3A = (uint16_t) TIMER_COMP_VAL(TIMER3_PRESCALER, inc_dur); //16Bit value is correct addressed automatically
 	
 	//Counter 3 Interrupt Mask Register
 	//Set OCIE3A Flag: Timer/Counter 3, Output Compare A Match Interrupt Enable
@@ -141,46 +147,35 @@ ISR(ADC_vect){
  *------------------------------------------------------------------------------------------------------*/
 int main(void)
 {
-    irmp_init();			//initialize IRMP library
-	timer1_init();			//IRMP Timer
-	timer3_init();			//Volume increment timer
-	adc0_init();			//Potentiometer position adc
-	
-	uart0_init(UART_BAUD_SELECT(BAUDRATE, F_CPU));		//INIT UART0
-	//uart1_init(UART_BAUD_SELECT(BAUDRATE, F_CPU));
-	
-	//Send a firmware identifier via UART0
-	uart0_puts_p(PSTR("BC2 VolCtrl FW Version: "));
-	uart0_puts_p(PSTR(FW_VERSION));
-	uart0_puts_p(PSTR("\r\n"));
-		
-	//Pin Configurations
-	//Direction Control Register (1=output, 0=input)
-	DDRB = (1 << ERROR_LED); 
-	DDRC = (1 << PORTC2);
-	DDRE = (1 << PWR_5V_LED); 
-	DDRD = (1 << PIN_MOTOR_CW) | (1 << PIN_MOTOR_CCW) | (1 << PWR_3V3_LED);;
-
-	//Pullup Config
-	PORTC = 0;				//Deactivate Pullups at Port C
-	//PORTD = 0;				//Deactivate Pullups at Port D
-	
-	error_led(FALSE);		//Turn off Error LED
-	
 	//Read Data from EEPROM
 	ir_keyset_len = eeprom_read_byte(&eeprom_ir_keyset_len);
 	eeprom_read_block( (void*) ir_keyset , (void*) eeprom_ir_keyset, sizeof(eeprom_ir_keyset));
+	inc_dur = eeprom_read_word(&eeprom_inc_dur);
 	
-	//5V Power LED Disable
-	 if (eeprom_read_byte(&eeprom_pwr_5v_led)){
-		 //Turn LED on
-		 PORTE |= (1 << PWR_5V_LED);
-	 } else {
+	//Pin Configurations
+	//Direction Control Register (1=output, 0=input)
+	DDRB = (1 << ERROR_LED);
+	DDRC = (1 << PORTC2);
+	DDRE = (1 << PWR_5V_LED);
+	DDRD = (1 << PIN_MOTOR_CW) | (1 << PIN_MOTOR_CCW) | (1 << PWR_3V3_LED);;
+	
+	//Pullup Config
+	PORTC = 0;				//Deactivate Pullups at Port C
+	//PORTD = 0;			//Deactivate Pullups at Port D
+	
+	//INIT error LED
+	error_led(FALSE);		//Turn off Error LED
+
+	//Init 5V Power LED
+	if (eeprom_read_byte(&eeprom_pwr_5v_led)){
+		//Turn LED on
+		PORTE |= (1 << PWR_5V_LED);
+		} else {
 		//Turn LED off
-		 PORTE &= ~(1 << PWR_5V_LED);
-	 }
-	 
-	//3V3 Power LED Disable
+		PORTE &= ~(1 << PWR_5V_LED);
+	}
+
+	//Init 3V3 Power LED
 	if (eeprom_read_byte(&eeprom_pwr_3v3_led)){
 		//Turn LED on
 		PORTD |= (1 << PWR_3V3_LED);
@@ -189,7 +184,22 @@ int main(void)
 		PORTD &= ~(1 << PWR_3V3_LED);
 	}
 	
-	_delay_ms(300);			//wait until the boot message of ESP8266 at 74880 baud has passed
+	//Initialize Timers and ADC
+    irmp_init();			//initialize IRMP library
+	timer1_init();			//IRMP Timer
+	timer3_init();			//Volume increment timer
+	adc0_init();			//Potentiometer position adc
+	
+	//INIT UART
+	uart0_init(UART_BAUD_SELECT(BAUDRATE, F_CPU));		//INIT UART0
+	//uart1_init(UART_BAUD_SELECT(BAUDRATE, F_CPU));
+	
+	//Send a firmware identifier via UART0
+	uart0_puts_p(PSTR("BC2 VolCtrl FW: "));
+	uart0_puts_p(PSTR(FW_VERSION));
+	uart0_puts_p(PSTR("\r\n"));
+		
+	_delay_ms(500);			//wait until the boot message of ESP8266 at 74880 baud has passed
 	sei();					//Activate Interrupts
 
 	while (1)

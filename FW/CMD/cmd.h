@@ -54,12 +54,14 @@ typedef struct
 extern command cmd_set[NUM_CMDS];
 extern ir_key ir_keyset[IR_KEY_MAX_NUM];
 extern uint8_t ir_keyset_len;
+extern uint16_t inc_dur;
 
 extern uint8_t EEMEM eeprom_ir_keyset_len;
 extern uint8_t EEMEM eeprom_pwr_5v_led;
 extern uint8_t EEMEM eeprom_pwr_3v3_led;
 extern ir_key EEMEM eeprom_ir_keyset[IR_KEY_MAX_NUM];
 extern char EEMEM eeprom_ir_key_desc[IR_KEY_MAX_NUM][MAX_ARG_LEN];
+extern uint16_t EEMEM eeprom_inc_dur;
 
 extern IRMP_DATA irmp_data;
 extern volatile uint8_t FSM_STATE;
@@ -96,6 +98,8 @@ void getadcval(uint8_t argc, char *argv[]);
 void error_led(uint8_t);
 void set5vled(uint8_t argc, char *argv[]);
 void set3v3led(uint8_t argc, char *argv[]);
+void setincdur(uint8_t argc, char *argv[]);
+void getincdur(uint8_t argc, char *argv[]);
 
 void fsm(void);
 

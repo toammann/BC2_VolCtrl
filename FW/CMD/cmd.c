@@ -208,7 +208,7 @@ void volup(uint8_t argc, char *argv[]){
 	}
 	
 	//Broadcast a notification via UART
-	uart0_puts_p(PSTR("volup detected\r\n"));
+	uart0_puts_p(PSTR("volup\r\n"));
 	
 	//Change FSM_STATE
 	FSM_STATE = STATE_VOLUP;
@@ -224,7 +224,7 @@ void voldown(uint8_t argc, char *argv[]){
 		return;
 	}
 	
-	uart0_puts_p(PSTR("voldown detected\r\n"));
+	uart0_puts_p(PSTR("voldown\r\n"));
 	
 	//Change FSM_STATE
 	FSM_STATE = STATE_VOLDOWN;
@@ -238,12 +238,13 @@ void setvolume(uint8_t argc, char *argv[]){
 		return;
 	}
 
-	uart0_puts_p(PSTR("setvol detected\r\n"));
+	uart0_puts_p(PSTR("setvol\r\n"));
 
 	int idx;
-	char buffer[5];
+
 
 	#if DEBUG_MSG
+		char buffer[5];
 		uart0_puts_p(PSTR("argc: "));
 		uart0_puts(itoa(argc, buffer, 10));
 		uart0_puts_p(PSTR("\r\n"));
@@ -613,4 +614,67 @@ void set3v3led(uint8_t argc, char *argv[]){
 	}
 	//Invalid argument
 	uart0_puts_p(PSTR("Invalid Argument \r\n"));
+}
+
+//Updates the inc_duration value (EEPROM and RAM)
+void setincdur(uint8_t argc, char *argv[]){
+		
+	//Check if the correct number of arguments is present
+	if (argc > cmd_set[CMD_IDX_SETINCDUR].arg_cnt){
+		uart0_puts_p(PSTR("Invalid Argument count!\r\n"));
+		return;
+	}
+
+	#if DEBUG_MSG
+		char buffer[5];
+		uart0_puts_p(PSTR("argc: "));
+		uart0_puts(itoa(argc, buffer, 10));
+		uart0_puts_p(PSTR("\r\n"));
+			
+		for (int i=0; i < argc; i++)
+		{
+			uart0_puts_p(PSTR("argv: "));
+			uart0_puts(argv[i]);
+			uart0_puts_p(PSTR("\r\n"));
+		}
+	#endif
+		
+	//Get integer from argument vector (string)
+	uint16_t inc_dur_tmp = atoi( argv[0] );
+		
+	//Check Range (0...1400ms)
+	if ( (inc_dur_tmp > 1400) || (inc_dur_tmp < 0) ){
+		uart0_puts_p(PSTR("Argument out of range!\r\n"));
+		//error_led(TRUE);
+		return;
+	}
+		
+	//New inc_dur value is valid -> store to RAM, Timer Register and EEROM
+	inc_dur = inc_dur_tmp;
+	OCR3A = (uint16_t) TIMER_COMP_VAL(TIMER3_PRESCALER, inc_dur); //Update INC_DUR  Output Compare Timer Register
+	eeprom_update_word( &eeprom_inc_dur, inc_dur);
+		
+	uart0_puts_p(PSTR("INC_DURATION value updated\r\n"));
+}
+
+void getincdur(uint8_t argc, char *argv[]){
+	
+	//Check if the correct number of arguments is present
+	if (argc > cmd_set[CMD_IDX_SETINCDUR].arg_cnt){
+		uart0_puts_p(PSTR("Invalid Argument count!\r\n"));
+		return;
+	}
+		
+	//Check if the values in RAM and EEPROM match
+	if (eeprom_read_word(&eeprom_inc_dur) != inc_dur){
+		uart0_puts_p(PSTR("ERROR: INC_DUR EEPROM RAM MISSMATCH!\r\n"));
+		error_led(TRUE);
+	}
+		
+	char buffer[5];
+		
+	//Return the value to the user
+	uart0_puts_p(PSTR("INC_DURATION VALUE = "));
+	uart0_puts(itoa(inc_dur, buffer, 10));
+	uart0_puts_p(PSTR("ms\r\n"));
 }

@@ -162,15 +162,14 @@ void fsm (void){
 				uart0_puts_p(PSTR("\r\n"));
 			#endif
 				
-			if (irmp_data.flags == 1) {
-				//Ignore repetitive keypresses
-				//Only the first button press should trigger a
-				//Command it is possible that a button was pressed 
-				//to stop the setvol command. The second ir comannd (with flag == 1)
-				//should not trigger a cmd as this is not intended by the human
-				CMD_REC_IR = 0;
-				break;
-			}
+			//if (irmp_data.flags == 1) {
+				////Ignore repetitive keypresses
+				////Only the first button press should trigger a
+				////Command it is possible that a button was pressed to stop the setvol command. If the remote sends a second ir comannd (with flag == 1)
+				////it should not trigger a cmd
+				//CMD_REC_IR = 0;
+				//break;
+			//}
 
 			//Check if the received IR-Command matches a key in the keyset
 			ir_key_tmp.ir_addr =  irmp_data.address;
@@ -382,7 +381,6 @@ void fsm (void){
 				//Stop motor go to init and process the cmd
 				set_motor_off();
 				FSM_STATE = STATE_INIT;
-				//CMD_REC_IR = 0;
 				break;
 				
 			}
