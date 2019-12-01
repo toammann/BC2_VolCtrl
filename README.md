@@ -52,7 +52,7 @@ The firmware uses the awesome [IRMP (Infrared Multiprotocol Decoder)]( https://w
 To enable or disable protocols edit /FW/IMRP/irmpconfig.h. Every protocol will require a few bytes of RAM on the microcontroller. By default the most common IR-protocols are enabled:
 
 ```c
-#define IRMP_SUPPORT_SIRCS_PROTOCOL         1     // Sony SIRCS         ~150 bytes
+#define IRMP_SUPPORT_SIRCS_PROTOCOL         1    // Sony SIRCS         ~150 bytes
 #define IRMP_SUPPORT_NEC_PROTOCOL           1	 // NEC + APPLE        ~300 bytes
 #define IRMP_SUPPORT_SAMSUNG_PROTOCOL       1	 // Samsung + Samsg32  ~300 bytes
 #define IRMP_SUPPORT_KASEIKYO_PROTOCOL      1	 // Kaseikyo           ~250 bytes
@@ -72,13 +72,13 @@ The turning of the volume potentiometer is defined by timings. If i.e. the user 
 
 If the user sends another`volup/voldown` request while the potentiometer is still turning the timer gets reset and the inc duration time start from the beginning. This prevents the motor from stopping when the user holds a key down.
 
-However this behavior assumes that the update rate of the remote control is faster than the time specified by the increment duration. If this is not the case the motor movement won´t be continuous when the user holds down a volume control button. By default the increment duration is set to 150ms. With this value I found the volume step resolution to be sufficient. The update rate of all tested remotes were faster than 1/150ms. The measured update rate on my remotes is approx. 1/115ms.
+However this behavior assumes that the update rate of the remote control is faster than the time specified by the increment duration. If this is not the case the motor movement won´t be continuous when the user holds down a volume control button. By default the increment duration is set to 150ms. With this value I found the volume step resolution to be sufficiently small. The update rate of all tested remotes were faster than 1/150ms. I measured  approx. 1/115ms update rate on my remotes.
 
 ![loewe_update_rate](pics/loewe_ir_cmd_timing.PNG)
 
-The Telnet Wi-FI connection of the BC2_VolCtrl PCB is handled by a ESP8266-07 with [ESP-LINK]( https://github.com/jeelabs/esp-link) firmware installed. ESP-LINK implements a Wi-Fi telnet to Serial bridge which enables the communication with the ATmega 328pb microcontroller. 
+The Telnet Wi-FI connection of the BC2_VolCtrl PCB is handled by a ESP8266-07 with [ESP-LINK]( https://github.com/jeelabs/esp-link) firmware. ESP-LINK implements a Wi-Fi telnet to Serial bridge which enables the communication with the ATmega 328pb microcontroller. 
 
-As the installation location of the module is at the front panel near a large metal plate and the case of a audio amplifier may be a metal enclose the Wi-Fi signal reception would be poor. Further on the small outline of the PCB prevents sufficient GND spacings for the ESP8266´s PCB antenna which further degrades RF performance. Therefore a ESP8266-07 module with exposed U.FL antenna connector for a external antenna was chosen. In this way the RF performance is independent of installation location of the BC2_VolCtrl PCB. The downside is of course the requirement for an external Wi-Fi antenna.
+As the installation location of the module is at the front panel near a large metal plate and the case of a audio amplifier may be a metal enclose the Wi-Fi signal reception would be poor. Further on the small outline of the PCB prevents sufficient GND spacings for the ESP8266´s PCB antenna which further degrades RF performance. Therefore a ESP8266-07 module with exposed U.FL antenna connector for a external antenna was chosen. In this way the RF performance is independent of the installation location of the BC2_VolCtrl PCB. The downside is of course the requirement for an external Wi-Fi antenna.
 
 ### Telnet Command Set
 
@@ -92,6 +92,7 @@ As the installation location of the module is at the front panel near a large me
 |  `delrem`   | remote ctrl.  idx, [int] |      N/A      | Deletes the remote key specified by idx                      |
 | `getadcval` |           N/A            |  value [int]  | Returns the current value of the position ADC (for debugging) |
 | `setincdur` |        dur, [int]        |      N/A      | Sets the volume increment duration time in ms                |
+| `getincdur` |           N/A            |      N/A      | Returns the volume increment duration time in ms             |
 | `set5vled`  |       state, [0,1]       |      N/A      | Enables (1) or disables (0) the 5V power rail indicator led  |
 | `set3v3led` |       state, [0,1]       |      N/A      | Enables (1) or disables (0) the 3.3V power rail indicator led |
 
@@ -109,6 +110,9 @@ setvol 50			//Set the volume to 50%
 regrem cam, volup	//Register a remote control key with description 'cam' to execute the                       volup command
 showrem				//Displays a list of all registers remote control keys with index
 delrem 0			//delete remote control key with index 0
+getincdur			//returns the current inc_duration
+setincdur 120		//sets the inc duration to 120ms
+set3v3led 0			//disables the 3.3V power led (for transperent amplifier cases)
 ```
 
 The animation below shows the key registration process.
@@ -128,7 +132,7 @@ I ordered three boards at [Aisler.net]( https://aisler.net/ ) for around 50€ w
 
 > Bottom view, LT3622 (PCB rev 1.0 with patches)
 
-All electronic parts have [farnell](farnell.com) part numbers. I soldered the majority of components using solder paste (applied with stencil) and a cheap hot air gun (Atten 858D+)
+All electronic parts in exception of the potentiometers (ordered on ebay)  have [farnell](farnell.com) part numbers. I soldered the majority of components using solder paste (applied with stencil) and a cheap hot air gun (Atten 858D+)
 
 ## Things to consider for integration
 
@@ -150,33 +154,33 @@ The image below shows the PCB in a Black Cat 2 tube amplifier with 2.4GHz Wi-Fi 
 ### 1) First Power Up
 
 - Make sure the 3.3V and 5V rail are present. (Check voltage level and power LEDs)
-- Make sure you are able to read the ID of the ATmega 328pb using AVR-ISP
+- Check if you are able to read the ID of the ATmega 328pb using AVR-ISP
 
 ### 2) Set up ESP8266 (esp-link v3.2.47)
 
-- Make sure to change the position of the coupling capacitor / coupling resistor at the ESP8266-07 such that the RF signal is routed to the U.FL antenna connector and NOT the chip antenna.
+- Change the position of the coupling capacitor / coupling resistor on the ESP8266-07 such that the RF signal is routed to the U.FL antenna connector and NOT the chip antenna.
 
-- Set the ESP8266 to 'UART download mode': Set GPIO0 to logic zero 
+- Set the ESP8266 to 'UART download mode': GPIO0 to logic zero 
   - Remove R20
   - Place R24
 - Connect a USB<-> RS232 Converter at X4 (ESP_UART)
 - Flash the firmware following the instructions [here]( https://github.com/jeelabs/esp-link/blob/master/FLASHING.md#initial-serial-flashing) (esp-link serial flashing)
   - Make sure that you use the correct flash addresses for the flash size of your ESP-Module (512k/1M/4M). Example esptool cmd: `` esptool.exe --port COM4 write_flash 0x00000 boot_v1.6.bin 0x1000 user1.bin 0x3FC000 esp_init_data_default.bin 0x3FE000 blank.bin``
   - If you have trouble flashing the firmware you may try to remove R46 and R47 and change R44, R45 to 0Ohm to route the ESP UART directly to the module
-- Set the ESP8266 to boot from flash (normal mode): Set GPIO0 to logic high
+- Set the ESP8266 back to boot from flash (normal mode): Set GPIO0 to logic high
   - Remove R24
   - Place  R20
 - You should now be able to monitor the ESP8266 boot messages at the ESP-UART on X4 at 74880 baud
 - Connect a 50Ohm 2.4GHz Wi-Fi antenna to the ESP8266-07 U.FL connector
-- Make a search for Wi-Fi networks. A unsecured ESP-LINK access point should appear. Connect to the unsecured network (see ESP-LINK Wi-FI instructions [here]( https://github.com/jeelabs/esp-link/blob/master/WIFI-CONFIG.md ))
-- Open the ESP-LINK web Interface with your web browser using the IP http://192.168.4.1/ 
-  - Set up the connection to your Wi-Fi network. ESP-LINK will search for the network. If the ESP could not connect to it (i.e out of range) it will come up as a access point
-  - Set the baudrate to 57600 (uC Console -> Baud 57600)
+- Search for Wi-Fi networks with a notebook or smartphone. A unsecured ESP-LINK access point should appear. Connect to the unsecured network (see ESP-LINK Wi-FI instructions [here]( https://github.com/jeelabs/esp-link/blob/master/WIFI-CONFIG.md ))
+- Open ESP-LINK web Interface in your web browser using the ESP-LINK default IP: http://192.168.4.1 
+  - Set up the connection to your Wi-Fi network with the ESP-LINK web interface. After every boot of the ESP8266 the ESP-LINK firmware will search for the network. If the ESP is unable to connect to it (i.e out of range) it will come up as a access point
+  - Set the baudrate of the microcontroller UART to 57600 (uC Console -> Baud 57600)
   - Set the Pin assignment as displayed below 
 
 ![esp-link-cfg](pics/esp-link_cfg.png)
 
-- After a reboot of the ESP it should be a client in your Wi-Fi network with a ip-address assigned from your DNS server with the settings shown in the screenshot above. (try to reach the esp-link firmware at the correct ip-address i.e.  http://192.168.178.49/)
+- After a reboot of the ESP it should be a client in your Wi-Fi network with a ip-address assigned from your DNS server. The settings should be as shown in the screenshot above (try to reach the esp-link firmware at the correct ip-address i.e.  http://192.168.178.49/).
 
 ### 3) Set Up Atmega 328pb
 
@@ -190,69 +194,12 @@ The image below shows the PCB in a Black Cat 2 tube amplifier with 2.4GHz Wi-Fi 
 
 ## **Known issues**
 
-> To get started...
-
-### Step 1
-
-- **Option 1**
-    - 🍴 Fork this repo!
-
-- **Option 2**
-    - 👯 Clone this repo to your local machine using `https://github.com/joanaz/HireDot2.git`
-
-### Step 2
-
-- **HACK AWAY!** 🔨🔨🔨
-
-### Step 3
-
-- 🔃 Create a new pull request using <a href="https://github.com/joanaz/HireDot2/compare/" target="_blank">`https://github.com/joanaz/HireDot2/compare/`</a>.
+- Over the air (OTA) firmware update functionality of ESP-LINK does not work. You can view my issue thread [here]( https://github.com/jeelabs/esp-link/issues/439 )
+- Hardware revision 1.1 untested. Some manual hardware patches were made in rev 1.0  to get the PCB working. These patches are included in rev 1.1. However there was no rev 1.1 PCB manufactured
 
 ---
 
-## Team
-
-> Or Contributors/People
-
-| <a href="http://fvcproductions.com" target="_blank">**FVCproductions**</a> | <a href="http://fvcproductions.com" target="_blank">**FVCproductions**</a> | <a href="http://fvcproductions.com" target="_blank">**FVCproductions**</a> |
-| :---: |:---:| :---:|
-| [![FVCproductions](https://avatars1.githubusercontent.com/u/4284691?v=3&s=200)](http://fvcproductions.com)    | [![FVCproductions](https://avatars1.githubusercontent.com/u/4284691?v=3&s=200)](http://fvcproductions.com) | [![FVCproductions](https://avatars1.githubusercontent.com/u/4284691?v=3&s=200)](http://fvcproductions.com)  |
-| <a href="http://github.com/fvcproductions" target="_blank">`github.com/fvcproductions`</a> | <a href="http://github.com/fvcproductions" target="_blank">`github.com/fvcproductions`</a> | <a href="http://github.com/fvcproductions" target="_blank">`github.com/fvcproductions`</a> |
-
-- You can just grab their GitHub profile image URL
-- You should probably resize their picture using `?s=200` at the end of the image URL.
->>>>>>> 5182a4ce44889fe193537438b3224ea362441aa3
-
----
-
-## FAQ
-
-- **How do I do *specifically* so and so?**
-    - No problem! Just do this.
-
----
-
-<<<<<<< HEAD
-=======
-## Support
-
-Reach out to me at one of the following places!
-
-- Website at <a href="http://fvcproductions.com" target="_blank">`fvcproductions.com`</a>
-- Twitter at <a href="http://twitter.com/fvcproductions" target="_blank">`@fvcproductions`</a>
-- Insert more social links here.
-
----
-
-## Donations (Optional)
-
-- You could include a <a href="https://cdn.rawgit.com/gratipay/gratipay-badge/2.3.0/dist/gratipay.png" target="_blank">Gratipay</a> link as well.
-
-[![Support via Gratipay](https://cdn.rawgit.com/gratipay/gratipay-badge/2.3.0/dist/gratipay.png)](https://gratipay.com/fvcproductions/)
-
----
-
->>>>>>> 5182a4ce44889fe193537438b3224ea362441aa3
+>>>>>>> 
 ## License
 
 [![License](http://img.shields.io/:license-mit-blue.svg?style=flat-square)](http://badges.mit-license.org)
