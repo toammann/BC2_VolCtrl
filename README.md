@@ -24,7 +24,7 @@
 
 #### Basic Functions
 
-- Motor potentiometer for a completely analog signal chain
+- Motor potentiometer for a complete analog signal chain
 - Balance setting via knob control
 - Simultaneous use of multiple IR-Remotes (i.e. control via both: TV and CD-Player remotes )
 - Support of multiple IR-protocols (Sony, NEC, RC5, ...)
@@ -72,7 +72,9 @@ The turning of the volume potentiometer is defined by timings. If i.e. the user 
 
 If the user sends another`volup/voldown` request while the potentiometer is still turning the timer gets reset and the inc duration time start from the beginning. This prevents the motor from stopping when the user holds a key down.
 
-However this behavior assumes that the update rate of the remote control is faster than the time specified by the increment duration. If this is not the case the motor movement won´t be continuous when the user holds down a volume control button. By default the increment duration is set to 150ms. With this value I found the volume step resolution to be sufficient. The update rate of all tested remotes were faster than 1/150ms.
+However this behavior assumes that the update rate of the remote control is faster than the time specified by the increment duration. If this is not the case the motor movement won´t be continuous when the user holds down a volume control button. By default the increment duration is set to 150ms. With this value I found the volume step resolution to be sufficient. The update rate of all tested remotes were faster than 1/150ms. The measured update rate on my remotes is approx. 1/115ms.
+
+![loewe_update_rate](pics/loewe_ir_cmd_timing.PNG)
 
 The Telnet Wi-FI connection of the BC2_VolCtrl PCB is handled by a ESP8266-07 with [ESP-LINK]( https://github.com/jeelabs/esp-link) firmware installed. ESP-LINK implements a Wi-Fi telnet to Serial bridge which enables the communication with the ATmega 328pb microcontroller. 
 
