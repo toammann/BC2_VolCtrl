@@ -68,7 +68,7 @@ The firmware uses the awesome [IRMP (Infrared Multiprotocol Decoder)]( https://w
 To enable or disable protocols edit /FW/IMRP/irmpconfig.h. Every protocol will require a few bytes of RAM on the microcontroller. By default the most common IR-protocols are enabled:
 
 ```c
-#define IRMP_SUPPORT_SIRCS_PROTOCOL         1    mm// Sony SIRCS         ~150 bytes
+#define IRMP_SUPPORT_SIRCS_PROTOCOL         1    // Sony SIRCS         ~150 bytes
 #define IRMP_SUPPORT_NEC_PROTOCOL           1	 // NEC + APPLE        ~300 bytes
 #define IRMP_SUPPORT_SAMSUNG_PROTOCOL       1	 // Samsung + Samsg32  ~300 bytes
 #define IRMP_SUPPORT_KASEIKYO_PROTOCOL      1	 // Kaseikyo           ~250 bytes
