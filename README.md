@@ -16,15 +16,25 @@
 
 ## **Document link list**
 
+- [Schematic](PCB/PDF/BC2_VolCtrl_Schematic.pdf)
+- [Bill of Materials (BOM)](PCB/BOM/BOM.xlsx)
+- [Board](PCB/PDF/BC2_VolCtrl_PCB.pdf)
+- [Board Stack](PCB/PDF/BC2_VolCtrl_Board_Stack.pdf)
+- [BOM Assembly](PCB/BOM/AssemblyTOP_BOT.xlsx)
+- [Assembly drawing](PCB/PDF/BC2_VolCtrl_Assembly.pdf)
+- [Gerber](PCB/Gerber)
+- [NC Drill](PCB/NC Drill)
 
+## **Table of Contents**
 
-
-
-
-
-## **Table of contents**
-
-[TOC]
+- [Features](#Features)
+- [Description](#Description)
+- [Manufacturing](#Manufacturing)
+- [Things to consider for integration](#Things to consider for integration)
+- [Black Cat 2 integration](#Black Cat 2 integration)
+- [First time setup](#First time setup)
+- [Known issues](#Known issues)
+- [License](#License)
 
 ## **Features**
 
