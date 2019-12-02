@@ -202,12 +202,12 @@ The image below shows the PCB in a Black Cat 2 tube amplifier with 2.4GHz Wi-Fi 
 
 - After a reboot of the ESP it should be a client in your Wi-Fi network with a ip-address assigned from your DNS server. The settings should be as shown in the screenshot above (try to reach the esp-link firmware at the correct ip-address i.e.  http://192.168.178.49/).
 
-### 3) Setup Atmega 328pb
+### 3) Setup Atmega 328pb, with Atmel ISP programmer
 
 - Fuse Settings:
-  - Extended:
-  - High:
-  - Low: (External 8 MHz crystal)
+  - Extended:    0xFD
+  - High:            0xD6
+  - Low:             0xFF (External 8 MHz crystal)
 - Flash Firmware binary, BC2_VolCtrl_FW.hex
 - Flash EEPROM default valuesBC2_VolCtrl_FW.eep
 
