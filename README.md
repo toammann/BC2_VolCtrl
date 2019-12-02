@@ -1,5 +1,3 @@
-
-
 # BC2_VolCtrl PCB and FW
 
 ![img](pics/3D_view.png)
@@ -9,9 +7,9 @@
 > - The old school way, turning the knob
 >
 > - Standard infrared remote controls (several IR protocols)
-> - Telnet interface (Wi-Fi)
+> - A telnet interface (Wi-Fi)
 >
-> The PCB was designed as an upgrade for the Black Cat 2 audio tube amplifier. As the design of the PCB is universal, it may be easily integrated in other do-it-yourself amplifier projects.
+> The PCB was designed as an upgrade for the Black Cat 2 audio tube amplifier. As the design of the PCB is universal, it may be integrated in other do-it-yourself amplifier projects easily.
 >
 > The amplifier itself was designed by  Henry Westphal and his students at the technical university of Berlin in Germany. Schematic and documentation are available [here](https://www.emsp.tu-berlin.de/menue/studium_und_lehre/mixed_signal_baugruppen_alt/das_projekt_black_cat/) (only German). 
 >
@@ -19,6 +17,14 @@
 ## **Document link list**
 
 
+
+
+
+
+
+## **Table of contents**
+
+[TOC]
 
 ## **Features**
 
@@ -52,7 +58,7 @@ The firmware uses the awesome [IRMP (Infrared Multiprotocol Decoder)]( https://w
 To enable or disable protocols edit /FW/IMRP/irmpconfig.h. Every protocol will require a few bytes of RAM on the microcontroller. By default the most common IR-protocols are enabled:
 
 ```c
-#define IRMP_SUPPORT_SIRCS_PROTOCOL         1    // Sony SIRCS         ~150 bytes
+#define IRMP_SUPPORT_SIRCS_PROTOCOL         1    mm// Sony SIRCS         ~150 bytes
 #define IRMP_SUPPORT_NEC_PROTOCOL           1	 // NEC + APPLE        ~300 bytes
 #define IRMP_SUPPORT_SAMSUNG_PROTOCOL       1	 // Samsung + Samsg32  ~300 bytes
 #define IRMP_SUPPORT_KASEIKYO_PROTOCOL      1	 // Kaseikyo           ~250 bytes
@@ -140,7 +146,7 @@ All electronic parts in exception of the potentiometers (ordered on ebay)  have 
 - An external 50Ohm Impeance 2.4GHz Wi-Fi antenna is required (mounted at the amplifier case)
 - An external IR sensor (TSOP4838 or similar) at the  amplifier front is required
 - An AVR Programmer is required to program the atmega328pb
-- <span style="color:red">I am not responsible for any damage caused by the BC2_VolCtrl PCB. Make sure the  PCB fits in your design and is functional. </span>
+- <span style="color:red">I am not responsible for any damage caused by the BC2_VolCtrl PCB. Make sure the  PCB fits to your design, is functional and safe to operate. </span>
 
 ## Black Cat 2 integration
 
@@ -182,20 +188,19 @@ The image below shows the PCB in a Black Cat 2 tube amplifier with 2.4GHz Wi-Fi 
 
 - After a reboot of the ESP it should be a client in your Wi-Fi network with a ip-address assigned from your DNS server. The settings should be as shown in the screenshot above (try to reach the esp-link firmware at the correct ip-address i.e.  http://192.168.178.49/).
 
-### 3) Set Up Atmega 328pb
+### 3) Setup Atmega 328pb
 
-
-
-
-
-
-
-
+- Fuse Settings:
+  - Extended:
+  - High:
+  - Low: (External 8 MHz crystal)
+- Flash Firmware binary, BC2_VolCtrl_FW.hex
+- Flash EEPROM default valuesBC2_VolCtrl_FW.eep
 
 ## **Known issues**
 
-- Over the air (OTA) firmware update functionality of ESP-LINK does not work. You can view my issue thread [here]( https://github.com/jeelabs/esp-link/issues/439 )
-- Hardware revision 1.1 untested. Some manual hardware patches were made in rev 1.0  to get the PCB working. These patches are included in rev 1.1. However there was no rev 1.1 PCB manufactured
+- Over the air (OTA) firmware update functionality of ESP-LINK does not work. View my issue thread [here]( https://github.com/jeelabs/esp-link/issues/439 ).
+- Hardware revision 1.1 untested. Some manual hardware patches were made in rev 1.0  to get the PCB working. These patches are included in rev 1.1. However there was no rev 1.1 PCB manufactured.
 
 ---
 
@@ -205,4 +210,4 @@ The image below shows the PCB in a Black Cat 2 tube amplifier with 2.4GHz Wi-Fi 
 [![License](http://img.shields.io/:license-mit-blue.svg?style=flat-square)](http://badges.mit-license.org)
 
 - **[MIT license](http://opensource.org/licenses/mit-license.php)**
-- Copyright 2015 © <a href="http://fvcproductions.com" target="_blank">FVCproductions</a>.
+- Copyright 2019© Ammann
