@@ -191,10 +191,14 @@ The image below shows the PCB in a Black Cat 2 tube amplifier with 2.4GHz Wi-Fi 
 - Search for Wi-Fi networks with a notebook or smartphone. A unsecured ESP-LINK access point should appear. Connect to the unsecured network (see ESP-LINK Wi-FI instructions [here]( https://github.com/jeelabs/esp-link/blob/master/WIFI-CONFIG.md ))
 - Open ESP-LINK web Interface in your web browser using the ESP-LINK default IP: http://192.168.4.1 
   - Set up the connection to your Wi-Fi network with the ESP-LINK web interface. After every boot of the ESP8266 the ESP-LINK firmware will search for the network. If the ESP is unable to connect to it (i.e out of range) it will come up as a access point
+  
   - Set the baudrate of the microcontroller UART to 57600 (uC Console -> Baud 57600)
+  
   - Set the Pin assignment as displayed below 
-
-![esp-link-cfg](pics/esp-link_cfg.png)
+  
+    ![esp-link-cfg](pics/esp-link_cfg.png)
+  
+    > ESP-Link Config
 
 - After a reboot of the ESP it should be a client in your Wi-Fi network with a ip-address assigned from your DNS server. The settings should be as shown in the screenshot above (try to reach the esp-link firmware at the correct ip-address i.e.  http://192.168.178.49/).
 
