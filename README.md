@@ -23,17 +23,17 @@
 - [BOM Assembly](PCB/BOM/AssemblyTOP_BOT.xlsx)
 - [Assembly drawing](PCB/PDF/BC2_VolCtrl_Assembly.pdf)
 - [Gerber](PCB/Gerber)
-- [NC Drill](PCB/NC Drill)
+- [NC Drill](PCB/NC_Drill)
 
 ## **Table of Contents**
 
 - [Features](#Features)
 - [Description](#Description)
 - [Manufacturing](#Manufacturing)
-- [Things to consider for integration](#Things to consider for integration)
-- [Black Cat 2 integration](#Black Cat 2 integration)
-- [First time setup](#First time setup)
-- [Known issues](#Known issues)
+- [Things to consider for integration](#Things-to-consider-for-integration)
+- [Black Cat 2 integration](#Black-Cat-2-integration)
+- [First time setup](#First-time-setup)
+- [Known issues](#Known-issues)
 - [License](#License)
 
 ## **Features**
