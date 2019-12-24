@@ -138,7 +138,7 @@ The animation below shows the key registration process.
 
 ## Manufacturing
 
-The PCB was designed in Altium Designer. You will find all production files in the /PCB/ subfolder. 
+You will find all production files in the /PCB/ subfolder. 
 
 I ordered three boards at [Aisler.net]( https://aisler.net/ ) for around 50€ with a stencil included (4 Layer PCB). I was satisfied with the quality of the boards. The images below shows the old PCB rev. 1.0. I corrected some things in rev 1.1.
 ![up](pics/top.jpg)
