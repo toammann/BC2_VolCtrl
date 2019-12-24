@@ -24,6 +24,7 @@
 - [Assembly drawing](PCB/PDF/BC2_VolCtrl_Assembly.pdf)
 - [Gerber](PCB/Gerber)
 - [NC Drill](PCB/NC_Drill)
+- [Step](PCB/VolCtrl_PCB.step)
 
 ## **Table of Contents**
 
