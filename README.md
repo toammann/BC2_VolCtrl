@@ -175,7 +175,7 @@ The image below shows the PCB in a Black Cat 2 tube amplifier with 2.4GHz Wi-Fi 
 
 ### 2) Set up ESP8266 (esp-link v3.2.47)
 
-- Change the position of the coupling capacitor / coupling resistor on the ESP8266-07 such that the RF signal is routed to the U.FL antenna connector and NOT the chip antenna.
+- Change the position of the coupling capacitor / coupling resistor on the ESP8266-07 such that the RF signal is routed to the U.FL antenna connector and NOT to the chip antenna.
 
 - Set the ESP8266 to 'UART download mode': GPIO0 to logic zero 
   - Remove R20
