@@ -187,7 +187,7 @@ The image below shows the PCB in a Black Cat 2 tube amplifier with 2.4GHz Wi-Fi 
 - Set the ESP8266 back to boot from flash (normal mode): Set GPIO0 to logic high
   - Remove R24
   - Place  R20
-- You should now be able to monitor the ESP8266 boot messages at the ESP-UART on X4 at 74880 baud
+- You should be able to monitor the ESP8266 boot messages at the ESP-UART on X4 at 74880 baud
 - Connect a 50Ohm 2.4GHz Wi-Fi antenna to the ESP8266-07 U.FL connector
 - Search for Wi-Fi networks with a notebook or smartphone. A unsecured ESP-LINK access point should appear. Connect to the unsecured network (see ESP-LINK Wi-FI instructions [here]( https://github.com/jeelabs/esp-link/blob/master/WIFI-CONFIG.md ))
 - Open ESP-LINK web Interface in your web browser using the ESP-LINK default IP: http://192.168.4.1 
