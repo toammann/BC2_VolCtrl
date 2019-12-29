@@ -216,7 +216,7 @@ The image below shows the PCB in a Black Cat 2 tube amplifier with 2.4GHz Wi-Fi 
 
 - Over the air (OTA) firmware update functionality of ESP-LINK does not work. View my issue thread [here]( https://github.com/jeelabs/esp-link/issues/439 ).
 - Hardware revision 1.1 untested. Some manual hardware patches were made in rev 1.0  to get the PCB working. These patches are included in rev 1.1. However there was no rev 1.1 PCB manufactured.
-- Poti curve hast to be tweaked for a better match of volume percentage and rotation angle
+- Poti curve has to be tweaked for a better match of volume percentage and rotation angle
 ---
 
 >>>>>>> 
