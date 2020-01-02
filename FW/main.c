@@ -168,8 +168,9 @@ int main(void)
 	DDRD = (1 << PIN_MOTOR_CW) | (1 << PIN_MOTOR_CCW) | (1 << PWR_3V3_LED);;
 	
 	//Pullup Config
-	PORTC = 0;				//Deactivate Pullups at Port C
-	//PORTD = 0;			//Deactivate Pullups at Port D
+	PORTC = ~(1 << PORTC0);					//Deactivate Pullup at PC0
+	PORTB = (1 << PORTB1) || (1 << PORTB3);	//Activate Pullup at AVR_TXD1_MOSI0, PB1 defined level for U5 buffer
+	//PORTE = 0;			
 	
 	//INIT error LED
 	error_led(FALSE);		//Turn off Error LED
