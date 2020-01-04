@@ -23,7 +23,7 @@
 - [BOM Assembly](PCB/BOM/AssemblyTOP_BOT.xlsx)
 - [Assembly drawing](PCB/PDF/BC2_VolCtrl_Assembly.pdf)
 - [Gerber](PCB/Gerber)
-- [NC Drill](PCB/"NC_Drill")
+- [NC Drill](PCB/"NC Drill")
 - [3D-Model (*.step)](PCB/VolCtrl_PCB.step)
 
 ## **Table of Contents**
