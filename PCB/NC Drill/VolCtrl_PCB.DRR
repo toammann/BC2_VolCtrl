@@ -1,5 +1,5 @@
 ----------------------------------------------------------------------------------------------------------------------------------
-NCDrill File Report For: VolCtrl_PCB.PcbDoc   08.01.2020  21:27:04
+NCDrill File Report For: VolCtrl_PCB.PcbDoc   08.01.2020  21:37:38
 ----------------------------------------------------------------------------------------------------------------------------------
 
 Layer Pair : TOP to BOT
@@ -8,11 +8,11 @@ ASCII Plated SlotHoles File : VolCtrl_PCB-SlotHoles-Plated.TXT
 
 Tool       Hole Size               Hole Tolerance               Hole Type       Hole Count   Plated         Tool Travel
 ----------------------------------------------------------------------------------------------------------------------------------
-T1      12mil (0.3mm)                                             Round             268       PTH        37.89inch (962.32mm)
+T1      12mil (0.3mm)                                             Round             268       PTH        33.51inch (851.15mm)
 T2      16mil (0.399mm)                                           Round             13        PTH        4.30inch (109.13mm)
 T3      20mil (0.5mm)                                             Round             1         PTH        0.00inch (0.00mm)
 T4      39mil (1.001mm)                                           Round             16        PTH        1.67inch (42.50mm)
-T5      45mil (1.151mm)                                           Round             20        PTH        3.60inch (91.40mm)
+T5      45mil (1.151mm)                                           Round             20        PTH        3.80inch (96.47mm)
 T6      47mil (1.199mm)                                           Round             6         PTH        1.18inch (30.00mm)
 T7      47mil (1.199mm)                                           Slot              2         PTH        1.57inch (39.90mm)
 T8      51mil (1.3mm)                                             Round             2         PTH        1.18inch (30.00mm)
@@ -20,4 +20,4 @@ T9      55mil (1.4mm)                                             Round         
 ----------------------------------------------------------------------------------------------------------------------------------
 Totals                                                                              344
 
-Total Processing Time (hh:mm:ss) : 00:00:01
+Total Processing Time (hh:mm:ss) : 00:00:00
