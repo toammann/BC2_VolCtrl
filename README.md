@@ -225,4 +225,3 @@ The image below shows the PCB in a Black Cat 2 tube amplifier with 2.4GHz Wi-Fi 
 [![License](http://img.shields.io/:license-mit-blue.svg?style=flat-square)](http://badges.mit-license.org)
 
 - **[MIT license](http://opensource.org/licenses/mit-license.php)**
-- Copyright 2019© Ammann
