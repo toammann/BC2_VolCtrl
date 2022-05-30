@@ -7,11 +7,11 @@
 > - The old school way, turning the knob
 >
 > - Standard infrared remote controls (several IR protocols)
-> - A telnet interface (Wi-Fi)
+> - A telnet interface via Wi-Fi
 >
-> The PCB was designed as an upgrade for the Black Cat 2 audio tube amplifier. As the design of the PCB is universal, it may be integrated in other do-it-yourself amplifier projects easily.
+> The PCB was designed as an upgrade for the Black Cat 2 audio tube amplifier. The design of the PCB is universal. It can be integrated in other do-it-yourself amplifier projects easily.
 >
-> The amplifier itself was designed by  Henry Westphal and his students at the technical university of Berlin in Germany. Schematic and documentation are available [here](https://www.emsp.tu-berlin.de/menue/studium_und_lehre/mixed_signal_baugruppen_alt/das_projekt_black_cat/) (only German). 
+> The tube amp itself was designed by Henry Westphal and his students at the technical university of Berlin in Germany. Schematic and documentation is available [here](https://www.emsp.tu-berlin.de/menue/studium_und_lehre/mixed_signal_baugruppen_alt/das_projekt_black_cat/) (only German). 
 >
 
 ## **Document link list**
@@ -41,19 +41,19 @@
 
 #### Basic Functions
 
-- Motor potentiometer for a complete analog signal chain
+- Motor potentiometer (keep the sigal path completely analog)
 - Balance setting via knob control
-- Simultaneous use of multiple IR-Remotes (i.e. control via both: TV and CD-Player remotes )
+- Simultaneous use of multiple IR-Remotes (i.e. control via TV and CD-Player remotes )
 - Support of multiple IR-protocols (Sony, NEC, RC5, ...)
 - Position recognition of volume potentiometer
 - Set-up via a simple command based telnet Wi-Fi connection
 - Volume control via a telnet Wi-Fi connection (App. required)
-- ESP-Link firmware with all features on the ESP8266 - Wi-Fi module
+- ESP-Link firmware with all features of the ESP8266 - Wi-Fi module
 
 #### Circuit Design 
 
 - LT3622 wide Vin step down converter (designed for VCC=12V)
-- ATmega 328pb Atmel microcontroller
+- ATmega 328pb microcontroller
 - UART-1 and one GPIO available at external connector (unsed)
 - Black-Cat 2 tube amp compatible connectors and layout
 - Farnell bill of materials
@@ -79,9 +79,9 @@ To enable or disable protocols edit /FW/IMRP/irmpconfig.h. Every protocol will r
 
 Some IR-Remotes i.e. from CD-Players use different protocols for the majority of function keys and volume controls. For example a camebride audio CD-player remote uses the camebrige protocol for all function keys and the RC5 protocol for the volume up an down keys. 
 
-The versatile IRMP library enables the BC2_VolCtrl to work with almost any IR remote. You can use any free key on one of the existing remotes that are already on your coffee table to control the volume. Use the 'regrem' Telnet command to register a new key of your remote to execute any of the commands specified below with a button press. 
+The versatile IRMP library enables the BC2_VolCtrl to work with almost any IR remote. You can use any key on one of the existing remotes that are already on your coffee table to control the volume. Use the 'regrem' telnet command to register a new key of your remote to execute any of the commands specified below with a button press. 
 
-For example you may register two keys on your TV remote with the `volup/voldown` commands. You can do the same with your CD-Player remotes. This enables the user to control the volume via two independent IR remotes (TV and CD-Player remote). A third key may be registered with the `setvol 0` command to implement a basic 'mute' function.
+For example you may register two keys on your TV remote with the `volup/voldown` commands. You can do the same with your CD-player remotes. This enables the user to control the volume via two independent IR remotes (TV and CD-Player remote). A third key may be registered with the `setvol 0` command to implement a 'mute' function.
 
 ### Basic Operating Description
 
